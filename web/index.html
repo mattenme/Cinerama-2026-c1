@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cinerama - Pruebas</title>
+</head>
+<body>
+    <h2>Cinerama - Pruebas</h2>
+
+    <h3>Insertar datos</h3>
+    <button onclick="post('PeliculaController', {action:'insertar', titulo:'Inception', duracion_minutos:'148'})">
+        Insertar Pelicula
+    </button>
+    <button onclick="post('ClienteController', {action:'insertar', dni:'12345678', nombre:'Juan Perez'})">
+        Insertar Cliente
+    </button>
+    <button onclick="post('SalaController', {action:'insertar', nombre:'Sala 1', tipo:'2D', capacidad_total:'100'})">
+        Insertar Sala
+    </button>
+    <button onclick="post('CalificacionController', {action:'insertar', id_cliente:'1', id_pelicula:'1', puntuacion:'5'})">
+        Calificar (id_cliente=1, id_pelicula=1)
+    </button>
+
+    <h3>Consultar datos</h3>
+    <button onclick="get('PeliculaController')">Ver Peliculas</button>
+    <button onclick="get('ClienteController')">Ver Clientes</button>
+    <button onclick="get('SalaController')">Ver Salas</button>
+    <button onclick="get('CalificacionController')">Ver Calificaciones</button>
+    <button onclick="get('ButacaController')">Ver Butacas</button>
+    <button onclick="get('FuncionController')">Ver Funciones</button>
+    <button onclick="get('TransaccionController')">Ver Transacciones</button>
+    <button onclick="get('IncidenciaController')">Ver Incidencias</button>
+
+    <pre id="out" style="background:#eee;padding:10px;margin-top:10px;min-height:50px"></pre>
+
+   
+</html>
