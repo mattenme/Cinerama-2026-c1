@@ -33,5 +33,24 @@
 
     <pre id="out" style="background:#eee;padding:10px;margin-top:10px;min-height:50px"></pre>
 
-   
+    <script>
+        const BASE = 'http://localhost:8080/Cinerama_1/';
+        async function get(endpoint) {
+            try {
+                let r = await fetch(BASE + endpoint);
+                document.getElementById('out').textContent = await r.text();
+            } catch (e) {
+                document.getElementById('out').textContent = 'Error: ' + e;
+            }
+        }
+        async function post(endpoint, data) {
+            try {
+                let params = new URLSearchParams(data);
+                let r = await fetch(BASE + endpoint, { method: 'POST', body: params });
+                document.getElementById('out').textContent = await r.text();
+            } catch (e) {
+                document.getElementById('out').textContent = 'Error: ' + e;
+            }
+        }
+    </script>
 </html>
