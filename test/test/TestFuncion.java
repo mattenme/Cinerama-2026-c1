@@ -15,20 +15,20 @@ public class TestFuncion {
         System.out.println("=== TEST FUNCION ===");
 
         Pelicula p = new Pelicula();
-        p.setTitulo("Interestelar");
+        p.setTitulo("Interestelar Test");
         p.setDuracion_minutos(169);
         new PeliculaDaoImpl().insertar(p);
         int idPel = new PeliculaDaoImpl().lista().stream()
-            .filter(x -> x.getTitulo().equals("Interestelar"))
+            .filter(x -> x.getTitulo().equals("Interestelar Test"))
             .findFirst().get().getId_pelicula();
 
         Sala sala = new Sala();
-        sala.setNombre("Sala Funcion");
+        sala.setNombre("Sala Funcion Test");
         sala.setTipo("IMAX");
         sala.setCapacidad_total(80);
         new SalaDaoImpl().insertar(sala);
         int idSala = new SalaDaoImpl().lista().stream()
-            .filter(s -> s.getNombre().equals("Sala Funcion"))
+            .filter(s -> s.getNombre().equals("Sala Funcion Test"))
             .findFirst().get().getId_sala();
 
         Pelicula pel = new Pelicula();
@@ -39,7 +39,7 @@ public class TestFuncion {
         Funcion f = new Funcion();
         f.setPelicula(pel);
         f.setSala(sl);
-        f.setHora_inicio("2026-06-01 20:00:00");
+        f.setHora_inicio("2026-07-01T20:00:00");
         f.setEstado("Programada");
         boolean ok = dao.insertar(f);
         System.out.println("Insertar: " + (ok ? "OK" : "FAIL"));

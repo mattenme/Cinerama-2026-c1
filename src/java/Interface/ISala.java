@@ -9,4 +9,5 @@ public interface ISala {
     public boolean update(Sala sala);
     public Sala searchById(int id);
     public boolean delete(int id);
+    public boolean existeNombre(String nombre);
 }

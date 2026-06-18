@@ -12,10 +12,10 @@ public class TestCliente {
         System.out.println("=== TEST CLIENTE ===");
 
         Cliente c = new Cliente();
-        c.setDni("12345678");
-        c.setNombre("Juan Perez");
-        c.setCancelaciones_acumuladas(0);
-        c.setEs_frecuente(false);
+        c.setDni("9988" + System.currentTimeMillis());
+        c.setNombre("Test Cliente");
+        c.setEmail("test@email.com");
+        c.setTelefono("999888777");
         int id = dao.insertar(c);
         System.out.println("Insertar: " + (id > 0 ? "OK id=" + id : "FAIL"));
 
@@ -25,10 +25,10 @@ public class TestCliente {
         Cliente buscado = dao.searchById(id);
         System.out.println("SearchById: " + (buscado != null ? buscado.getNombre() : "FAIL"));
 
-        Cliente porDni = dao.searchByDni("12345678");
+        Cliente porDni = dao.searchByDni("99887766");
         System.out.println("SearchByDni: " + (porDni != null ? porDni.getNombre() : "FAIL"));
 
-        buscado.setEs_frecuente(true);
+        buscado.setTelefono("999000111");
         boolean ok = dao.update(buscado);
         System.out.println("Update: " + (ok ? "OK" : "FAIL"));
 

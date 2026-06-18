@@ -20,14 +20,21 @@ public class ButacaController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
-        String id = req.getParameter("id");
-        String idSala = req.getParameter("idSala");
-        if (id != null) {
-            resp.getWriter().write(gson.toJson(butacaDao.searchById(Integer.parseInt(id))));
-        } else if (idSala != null) {
-            resp.getWriter().write(gson.toJson(butacaDao.listarPorSala(Integer.parseInt(idSala))));
-        } else {
-            resp.getWriter().write(gson.toJson(butacaDao.lista()));
+        try {
+            String id = req.getParameter("id");
+            String idSala = req.getParameter("idSala");
+            if (id != null) {
+                resp.getWriter().write(gson.toJson(butacaDao.searchById(Integer.parseInt(id))));
+            } else if (idSala != null) {
+                resp.getWriter().write(gson.toJson(butacaDao.listarPorSala(Integer.parseInt(idSala))));
+            } else {
+                resp.getWriter().write(gson.toJson(butacaDao.lista()));
+            }
+        } catch (NumberFormatException e) {
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
+        } catch (Exception e) {
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
+            e.printStackTrace();
         }
     }
 
@@ -35,25 +42,33 @@ public class ButacaController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
-        String action = req.getParameter("action");
         boolean ok = false;
-
-        if ("insertar".equals(action)) {
-            Butaca b = new Butaca();
-            Sala s = new Sala();
-            s.setId_sala(Integer.parseInt(req.getParameter("id_sala")));
-            b.setSala(s);
-            b.setFila(req.getParameter("fila"));
-            b.setNumero(Integer.parseInt(req.getParameter("numero")));
-            b.setEstado(req.getParameter("estado"));
-            ok = butacaDao.insertar(b);
-        } else if ("cambiarEstado".equals(action)) {
-            ok = butacaDao.actualizarEstado(
-                Integer.parseInt(req.getParameter("id")),
-                req.getParameter("estado")
-            );
-        } else if ("delete".equals(action)) {
-            ok = butacaDao.delete(Integer.parseInt(req.getParameter("id")));
+        try {
+            String action = req.getParameter("action");
+            if ("insertar".equals(action)) {
+                Butaca b = new Butaca();
+                Sala s = new Sala();
+                s.setId_sala(Integer.parseInt(req.getParameter("id_sala")));
+                b.setSala(s);
+                b.setFila(req.getParameter("fila"));
+                b.setNumero(Integer.parseInt(req.getParameter("numero")));
+                b.setEstado(req.getParameter("estado"));
+                ok = butacaDao.insertar(b);
+            } else if ("cambiarEstado".equals(action)) {
+                ok = butacaDao.actualizarEstado(
+                    Integer.parseInt(req.getParameter("id")),
+                    req.getParameter("estado")
+                );
+            } else if ("delete".equals(action)) {
+                ok = butacaDao.delete(Integer.parseInt(req.getParameter("id")));
+            }
+        } catch (NumberFormatException e) {
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
+            return;
+        } catch (Exception e) {
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
+            e.printStackTrace();
+            return;
         }
         resp.getWriter().write("{\"success\":" + ok + "}");
     }

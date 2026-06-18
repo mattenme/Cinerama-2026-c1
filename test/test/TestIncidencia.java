@@ -27,7 +27,6 @@ public class TestIncidencia {
         Incidencia i = new Incidencia();
         i.setTipo("Fallo tecnico");
         i.setSala(s);
-        i.setReportado_por("Admin");
         i.setEstado("Sin atender");
         boolean ok = dao.insertar(i);
         System.out.println("Insertar: " + (ok ? "OK" : "FAIL"));

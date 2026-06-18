@@ -26,16 +26,13 @@ public class ClienteDaoImpl implements ICliente {
 
     @Override
     public int insertar(Cliente cli) {
-        String sql = "INSERT INTO Cliente (dni, nombre, email, telefono, avatar_url, cancelaciones_acumuladas, es_frecuente) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Cliente (dni, nombre, email, telefono) VALUES (?, ?, ?, ?)";
         try (Connection cn = ConexionSingleton.getConnection();
-             PreparedStatement st = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement st = cn.prepareStatement(sql, new String[]{"id_cliente"})) {
             st.setString(1, cli.getDni());
             st.setString(2, cli.getNombre());
             st.setString(3, cli.getEmail());
             st.setString(4, cli.getTelefono());
-            st.setString(5, cli.getAvatar_url());
-            st.setInt(6, cli.getCancelaciones_acumuladas());
-            st.setBoolean(7, cli.isEs_frecuente());
             st.executeUpdate();
             try (ResultSet rs = st.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
@@ -48,17 +45,14 @@ public class ClienteDaoImpl implements ICliente {
 
     @Override
     public boolean update(Cliente cli) {
-        String sql = "UPDATE Cliente SET dni=?, nombre=?, email=?, telefono=?, avatar_url=?, cancelaciones_acumuladas=?, es_frecuente=? WHERE id_cliente=?";
+        String sql = "UPDATE Cliente SET dni=?, nombre=?, email=?, telefono=? WHERE id_cliente=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setString(1, cli.getDni());
             st.setString(2, cli.getNombre());
             st.setString(3, cli.getEmail());
             st.setString(4, cli.getTelefono());
-            st.setString(5, cli.getAvatar_url());
-            st.setInt(6, cli.getCancelaciones_acumuladas());
-            st.setBoolean(7, cli.isEs_frecuente());
-            st.setInt(8, cli.getId_cliente());
+            st.setInt(5, cli.getId_cliente());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -117,10 +111,7 @@ public class ClienteDaoImpl implements ICliente {
             rs.getString("dni"),
             rs.getString("nombre"),
             rs.getString("email"),
-            rs.getString("telefono"),
-            rs.getString("avatar_url"),
-            rs.getInt("cancelaciones_acumuladas"),
-            rs.getBoolean("es_frecuente")
+            rs.getString("telefono")
         );
     }
 }

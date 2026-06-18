@@ -5,12 +5,9 @@ public class ConexionSingleton {
 
     public static Connection getConnection() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            String url = "jdbc:mysql://localhost/db_cinerama"
-                       + "?autoReconnect=true&useSSL=false"
-                       + "&allowPublicKeyRetrieval=true"
-                       + "&connectTimeout=5000&socketTimeout=30000";
-            Connection cn = DriverManager.getConnection(url, "root", "admin123");
+            Class.forName("oracle.jdbc.OracleDriver");
+            String url = "jdbc:oracle:thin:@localhost:1521:XE";
+            Connection cn = DriverManager.getConnection(url, "cineramaBD", "123");
             if (!cn.isValid(3)) {
                 throw new SQLException("La conexion no es valida");
             }

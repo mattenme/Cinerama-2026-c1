@@ -14,7 +14,7 @@ public class ButacaDaoImpl implements IButaca {
     public List<Butaca> lista() {
         List<Butaca> lista = new ArrayList<>();
         String sql = "SELECT b.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
-                   + "FROM Butaca b JOIN Sala s ON b.id_sala = s.id_sala";
+                   + "FROM Butaca b JOIN Sala s ON b.id_sala = s.id_sala ORDER BY b.id_sala, b.fila, b.numero";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql);
              ResultSet rs = st.executeQuery()) {
@@ -29,7 +29,7 @@ public class ButacaDaoImpl implements IButaca {
     public List<Butaca> listarPorSala(int idSala) {
         List<Butaca> lista = new ArrayList<>();
         String sql = "SELECT b.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
-                   + "FROM Butaca b JOIN Sala s ON b.id_sala = s.id_sala WHERE b.id_sala=?";
+                   + "FROM Butaca b JOIN Sala s ON b.id_sala = s.id_sala WHERE b.id_sala=? ORDER BY b.fila, b.numero";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, idSala);

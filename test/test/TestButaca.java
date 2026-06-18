@@ -12,13 +12,14 @@ public class TestButaca {
     public static void main(String[] args) {
         System.out.println("=== TEST BUTACA ===");
 
+        String salaName = "Sala Butaca Test " + System.currentTimeMillis();
         Sala sala = new Sala();
-        sala.setNombre("Sala Butaca Test");
+        sala.setNombre(salaName);
         sala.setTipo("3D");
         sala.setCapacidad_total(50);
         new SalaDaoImpl().insertar(sala);
         int idSala = new SalaDaoImpl().lista().stream()
-            .filter(s -> s.getNombre().equals("Sala Butaca Test"))
+            .filter(s -> s.getNombre().equals(salaName))
             .findFirst().get().getId_sala();
 
         Sala s = new Sala();

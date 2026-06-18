@@ -26,12 +26,13 @@ public class CalificacionDaoImpl implements ICalificacion {
 
     @Override
     public boolean insertar(Calificacion cal) {
-        String sql = "INSERT INTO Calificacion (id_cliente, id_pelicula, puntuacion) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Calificacion (id_cliente, id_pelicula, puntuacion, comentario) VALUES (?, ?, ?, ?)";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, cal.getId_cliente());
             st.setInt(2, cal.getId_pelicula());
             st.setInt(3, cal.getPuntuacion());
+            st.setString(4, cal.getComentario());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,6 +108,7 @@ public class CalificacionDaoImpl implements ICalificacion {
         cal.setId_cliente(rs.getInt("id_cliente"));
         cal.setId_pelicula(rs.getInt("id_pelicula"));
         cal.setPuntuacion(rs.getInt("puntuacion"));
+        cal.setComentario(rs.getString("comentario"));
         Timestamp ts = rs.getTimestamp("fecha_calificacion");
         cal.setFecha_calificacion(ts);
         return cal;

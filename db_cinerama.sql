@@ -40,7 +40,7 @@ CREATE TABLE Butaca (
     numero INT NOT NULL,
     estado VARCHAR(20) DEFAULT 'Disponible' NOT NULL,
     CONSTRAINT fk_butaca_sala FOREIGN KEY (id_sala) REFERENCES Sala(id_sala),
-    CONSTRAINT chk_estado_butaca CHECK (estado IN ('Disponible', 'Seleccionada', 'Vendida', 'Inactiva', 'Ocupada'))
+    CONSTRAINT chk_estado_butaca CHECK (estado IN ('Disponible', 'Seleccionada', 'Vendida', 'Mantenimiento'))
 );
 
 CREATE TABLE Funcion (

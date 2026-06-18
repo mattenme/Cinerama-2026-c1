@@ -28,7 +28,7 @@ public class SalaDaoImpl implements ISala {
     public int insertar(Sala sala) {
         String sql = "INSERT INTO Sala (nombre, tipo, capacidad_total) VALUES (?, ?, ?)";
         try (Connection cn = ConexionSingleton.getConnection();
-             PreparedStatement st = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement st = cn.prepareStatement(sql, new String[]{"id_sala"})) {
             st.setString(1, sala.getNombre());
             st.setString(2, sala.getTipo());
             st.setInt(3, sala.getCapacidad_total());
@@ -75,6 +75,21 @@ public class SalaDaoImpl implements ISala {
             e.printStackTrace();
         }
         return sala;
+    }
+
+    @Override
+    public boolean existeNombre(String nombre) {
+        String sql = "SELECT COUNT(*) FROM Sala WHERE nombre=?";
+        try (Connection cn = ConexionSingleton.getConnection();
+             PreparedStatement st = cn.prepareStatement(sql)) {
+            st.setString(1, nombre);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override

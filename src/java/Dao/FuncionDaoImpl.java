@@ -4,6 +4,8 @@ import Interface.IFuncion;
 import model.*;
 import utils.ConexionSingleton;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,9 @@ public class FuncionDaoImpl implements IFuncion {
     @Override
     public List<Funcion> lista() {
         List<Funcion> lista = new ArrayList<>();
-        String sql = "SELECT f.*, p.titulo, p.duracion_minutos, "
+        String sql = "SELECT f.id_funcion, f.id_pelicula, f.id_sala, "
+                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, "
+                   + "p.titulo, p.duracion_minutos, "
                    + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
                    + "FROM Funcion f "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
@@ -34,7 +38,7 @@ public class FuncionDaoImpl implements IFuncion {
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, fun.getPelicula().getId_pelicula());
             st.setInt(2, fun.getSala().getId_sala());
-            st.setString(3, fun.getHora_inicio());
+            st.setTimestamp(3, parseHora(fun.getHora_inicio()));
             st.setString(4, fun.getEstado());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -50,7 +54,7 @@ public class FuncionDaoImpl implements IFuncion {
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, fun.getPelicula().getId_pelicula());
             st.setInt(2, fun.getSala().getId_sala());
-            st.setString(3, fun.getHora_inicio());
+            st.setTimestamp(3, parseHora(fun.getHora_inicio()));
             st.setString(4, fun.getEstado());
             st.setInt(5, fun.getId_funcion());
             return st.executeUpdate() > 0;
@@ -60,10 +64,28 @@ public class FuncionDaoImpl implements IFuncion {
         }
     }
 
+    private java.sql.Timestamp parseHora(String hora) {
+        if (hora == null || hora.isEmpty()) return null;
+        try {
+            LocalDateTime dt = LocalDateTime.parse(hora, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return java.sql.Timestamp.valueOf(dt);
+        } catch (Exception e) {
+            try {
+                LocalDateTime dt = LocalDateTime.parse(hora, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+                return java.sql.Timestamp.valueOf(dt);
+            } catch (Exception e2) {
+                e2.printStackTrace();
+                return null;
+            }
+        }
+    }
+
     @Override
     public Funcion searchById(int id) {
         Funcion fun = null;
-        String sql = "SELECT f.*, p.titulo, p.duracion_minutos, "
+        String sql = "SELECT f.id_funcion, f.id_pelicula, f.id_sala, "
+                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, "
+                   + "p.titulo, p.duracion_minutos, "
                    + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
                    + "FROM Funcion f "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
@@ -96,7 +118,9 @@ public class FuncionDaoImpl implements IFuncion {
     @Override
     public List<Funcion> listarPorPelicula(int idPelicula) {
         List<Funcion> lista = new ArrayList<>();
-        String sql = "SELECT f.*, p.titulo, p.duracion_minutos, "
+        String sql = "SELECT f.id_funcion, f.id_pelicula, f.id_sala, "
+                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, "
+                   + "p.titulo, p.duracion_minutos, "
                    + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
                    + "FROM Funcion f "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "

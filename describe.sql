@@ -1,0 +1,10 @@
+DESC Pelicula;
+DESC Cliente;
+DESC Calificacion;
+DESC Sala;
+DESC Butaca;
+DESC Funcion;
+DESC Transaccion;
+DESC Boleto_Detalle;
+DESC Incidencia;
+EXIT;

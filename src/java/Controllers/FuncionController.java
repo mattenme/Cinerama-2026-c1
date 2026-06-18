@@ -21,14 +21,21 @@ public class FuncionController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
-        String id = req.getParameter("id");
-        String idPelicula = req.getParameter("idPelicula");
-        if (id != null) {
-            resp.getWriter().write(gson.toJson(funcionDao.searchById(Integer.parseInt(id))));
-        } else if (idPelicula != null) {
-            resp.getWriter().write(gson.toJson(funcionDao.listarPorPelicula(Integer.parseInt(idPelicula))));
-        } else {
-            resp.getWriter().write(gson.toJson(funcionDao.lista()));
+        try {
+            String id = req.getParameter("id");
+            String idPelicula = req.getParameter("idPelicula");
+            if (id != null) {
+                resp.getWriter().write(gson.toJson(funcionDao.searchById(Integer.parseInt(id))));
+            } else if (idPelicula != null) {
+                resp.getWriter().write(gson.toJson(funcionDao.listarPorPelicula(Integer.parseInt(idPelicula))));
+            } else {
+                resp.getWriter().write(gson.toJson(funcionDao.lista()));
+            }
+        } catch (NumberFormatException e) {
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
+        } catch (Exception e) {
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
+            e.printStackTrace();
         }
     }
 
@@ -36,23 +43,12 @@ public class FuncionController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
-        String action = req.getParameter("action");
         boolean ok = false;
-
-        if ("insertar".equals(action)) {
-            Funcion f = new Funcion();
-            Pelicula p = new Pelicula();
-            p.setId_pelicula(Integer.parseInt(req.getParameter("id_pelicula")));
-            f.setPelicula(p);
-            Sala s = new Sala();
-            s.setId_sala(Integer.parseInt(req.getParameter("id_sala")));
-            f.setSala(s);
-            f.setHora_inicio(req.getParameter("hora_inicio"));
-            f.setEstado(req.getParameter("estado"));
-            ok = funcionDao.insertar(f);
-        } else if ("update".equals(action)) {
-            Funcion f = funcionDao.searchById(Integer.parseInt(req.getParameter("id")));
-            if (f != null) {
+        String error = "";
+        try {
+            String action = req.getParameter("action");
+            if ("insertar".equals(action)) {
+                Funcion f = new Funcion();
                 Pelicula p = new Pelicula();
                 p.setId_pelicula(Integer.parseInt(req.getParameter("id_pelicula")));
                 f.setPelicula(p);
@@ -61,11 +57,30 @@ public class FuncionController extends HttpServlet {
                 f.setSala(s);
                 f.setHora_inicio(req.getParameter("hora_inicio"));
                 f.setEstado(req.getParameter("estado"));
-                ok = funcionDao.update(f);
+                ok = funcionDao.insertar(f);
+            } else if ("update".equals(action)) {
+                Funcion f = funcionDao.searchById(Integer.parseInt(req.getParameter("id")));
+                if (f != null) {
+                    Pelicula p = new Pelicula();
+                    p.setId_pelicula(Integer.parseInt(req.getParameter("id_pelicula")));
+                    f.setPelicula(p);
+                    Sala s = new Sala();
+                    s.setId_sala(Integer.parseInt(req.getParameter("id_sala")));
+                    f.setSala(s);
+                    f.setHora_inicio(req.getParameter("hora_inicio"));
+                    f.setEstado(req.getParameter("estado"));
+                    ok = funcionDao.update(f);
+                }
+            } else if ("delete".equals(action)) {
+                ok = funcionDao.delete(Integer.parseInt(req.getParameter("id")));
             }
-        } else if ("delete".equals(action)) {
-            ok = funcionDao.delete(Integer.parseInt(req.getParameter("id")));
+        } catch (NumberFormatException e) {
+            resp.getWriter().write("{\"success\":false,\"error\":\"ID inv\u00e1lido\"}");
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            error = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "Error desconocido";
         }
-        resp.getWriter().write("{\"success\":" + ok + "}");
+        resp.getWriter().write("{\"success\":" + ok + ",\"error\":\"" + error + "\"}");
     }
 }

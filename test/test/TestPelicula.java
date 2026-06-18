@@ -12,7 +12,7 @@ public class TestPelicula {
         System.out.println("=== TEST PELICULA ===");
 
         Pelicula p = new Pelicula();
-        p.setTitulo("Inception");
+        p.setTitulo("Inception " + System.currentTimeMillis());
         p.setDuracion_minutos(148);
         boolean ok = dao.insertar(p);
         System.out.println("Insertar: " + (ok ? "OK" : "FAIL"));

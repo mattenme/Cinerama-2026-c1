@@ -26,7 +26,7 @@ public class PeliculaDaoImpl implements IPelicula {
 
     @Override
     public boolean insertar(Pelicula pel) {
-        String sql = "INSERT INTO Pelicula (titulo, duracion_minutos, genero, sinopsis, imagen_url, trailer_url) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Pelicula (titulo, duracion_minutos, genero, sinopsis, imagen_url, destacado) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setString(1, pel.getTitulo());
@@ -34,7 +34,7 @@ public class PeliculaDaoImpl implements IPelicula {
             st.setString(3, pel.getGenero());
             st.setString(4, pel.getSinopsis());
             st.setString(5, pel.getImagen_url());
-            st.setString(6, pel.getTrailer_url());
+            st.setInt(6, pel.getDestacado());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -44,7 +44,7 @@ public class PeliculaDaoImpl implements IPelicula {
 
     @Override
     public boolean update(Pelicula pel) {
-        String sql = "UPDATE Pelicula SET titulo=?, duracion_minutos=?, genero=?, sinopsis=?, imagen_url=?, trailer_url=? WHERE id_pelicula=?";
+        String sql = "UPDATE Pelicula SET titulo=?, duracion_minutos=?, genero=?, sinopsis=?, imagen_url=?, destacado=? WHERE id_pelicula=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setString(1, pel.getTitulo());
@@ -52,7 +52,7 @@ public class PeliculaDaoImpl implements IPelicula {
             st.setString(3, pel.getGenero());
             st.setString(4, pel.getSinopsis());
             st.setString(5, pel.getImagen_url());
-            st.setString(6, pel.getTrailer_url());
+            st.setInt(6, pel.getDestacado());
             st.setInt(7, pel.getId_pelicula());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -98,7 +98,7 @@ public class PeliculaDaoImpl implements IPelicula {
             rs.getString("genero"),
             rs.getString("sinopsis"),
             rs.getString("imagen_url"),
-            rs.getString("trailer_url")
+            rs.getInt("destacado")
         );
     }
 }

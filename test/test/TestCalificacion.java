@@ -15,7 +15,7 @@ public class TestCalificacion {
         System.out.println("=== TEST CALIFICACION ===");
 
         Cliente cli = new Cliente();
-        cli.setDni("87654321");
+        cli.setDni("8765" + System.currentTimeMillis());
         cli.setNombre("Test Calif");
         int idCli = new ClienteDaoImpl().insertar(cli);
 
@@ -30,7 +30,7 @@ public class TestCalificacion {
         Calificacion cal = new Calificacion();
         cal.setId_cliente(idCli);
         cal.setId_pelicula(idPel);
-        cal.setPuntuacion(5);
+        cal.setPuntuacion(4);
         boolean ok = dao.insertar(cal);
         System.out.println("Insertar: " + (ok ? "OK" : "FAIL"));
 
