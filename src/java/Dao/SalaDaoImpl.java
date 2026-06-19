@@ -46,6 +46,63 @@ public class SalaDaoImpl implements ISala {
     }
 
     @Override
+    public int insertarConButacas(Sala sala, int columnas) {
+        Connection cn = null;
+        PreparedStatement stSala = null;
+        PreparedStatement stButaca = null;
+        ResultSet rs = null;
+        try {
+            cn = ConexionSingleton.getConnection();
+            cn.setAutoCommit(false);
+            stSala = cn.prepareStatement(
+                "INSERT INTO Sala (nombre, tipo, capacidad_total) VALUES (?, ?, ?)",
+                new String[]{"id_sala"}
+            );
+            stSala.setString(1, sala.getNombre());
+            stSala.setString(2, sala.getTipo());
+            stSala.setInt(3, sala.getCapacidad_total());
+            int affected = stSala.executeUpdate();
+            if (affected == 0) throw new SQLException("No se pudo insertar la sala");
+            rs = stSala.getGeneratedKeys();
+            if (!rs.next()) throw new SQLException("No se gener\u00F3 ID de sala");
+            int salaId = rs.getInt(1);
+            rs.close();
+            rs = null;
+            int cap = sala.getCapacidad_total();
+            int rows = (int) Math.ceil((double) cap / columnas);
+            stButaca = cn.prepareStatement("INSERT INTO Butaca (id_sala, fila, numero, estado) VALUES (?, ?, ?, ?)");
+            int creados = 0;
+            for (int r = 0; r < rows && creados < cap; r++) {
+                char filaChar = (char) ('A' + r);
+                for (int n = 1; n <= columnas && creados < cap; n++) {
+                    stButaca.setInt(1, salaId);
+                    stButaca.setString(2, String.valueOf(filaChar));
+                    stButaca.setInt(3, n);
+                    stButaca.setString(4, "Disponible");
+                    stButaca.addBatch();
+                    creados++;
+                }
+            }
+            stButaca.executeBatch();
+            cn.commit();
+            return salaId;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (cn != null) {
+                try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) { }
+            try { if (stSala != null) stSala.close(); } catch (SQLException e) { }
+            try { if (stButaca != null) stButaca.close(); } catch (SQLException e) { }
+            if (cn != null) {
+                try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public boolean update(Sala sala) {
         String sql = "UPDATE Sala SET nombre=?, tipo=?, capacidad_total=? WHERE id_sala=?";
         try (Connection cn = ConexionSingleton.getConnection();

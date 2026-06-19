@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinerama | Pago</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="shortcut icon" href="assets/img/C_ine.ico" type="image/x-icon">
+    <style>
+        .payment-page { max-width: 520px; }
+        .payment-option { cursor: pointer; transition: all .2s; border: 2px solid transparent; }
+        .payment-option:hover { border-color: var(--cine-yellow); background: rgba(255,204,0,0.05); }
+        .payment-option.sel { border-color: var(--cine-yellow); background: rgba(255,204,0,0.1); }
+        .payment-option .icon-box { width: 36px; height: 36px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        html.dark-mode .payment-option .icon-box { background: #2a2a2a; }
+        html.dark-mode .payment-option:hover { background: rgba(255,204,0,0.08); }
+        html.dark-mode .payment-option.sel { background: rgba(255,204,0,0.12); }
+        .form-section { display: none; }
+        .form-section.open { display: block; }
+        .check-mark { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #ccc; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; }
+        .payment-option.sel .check-mark { border-color: var(--cine-yellow); background: var(--cine-yellow); }
+        .payment-option.sel .check-mark::after { content: '\2713'; color: #000; font-weight: 700; font-size: .7rem; }
+        .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container py-4">
+        <div class="row justify-content-center">
+            <div class="payment-page col-12">
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body px-3 py-3">
+                        <h6 class="fw-bold mb-3" style="font-size:.85rem;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);">Resumen</h6>
+                        <div class="summary-item">
+                            <span class="small">Asientos</span>
+                            <span class="small fw-semibold" id="summary-seats">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="small">Entradas</span>
+                            <span class="small fw-semibold" id="summary-tickets">$0</span>
+                        </div>
+                        <div id="summary-food-container" class="d-none">
+                            <hr class="my-1 opacity-25">
+                            <div class="small fw-semibold mb-1">Comida</div>
+                            <ul id="summary-food-list" class="list-unstyled small ms-2 mb-1"></ul>
+                            <div class="summary-item">
+                                <span class="small text-muted">Total comida</span>
+                                <span class="small fw-semibold" id="summary-food-total">$0</span>
+                            </div>
+                        </div>
+                        <hr class="my-1 opacity-25">
+                        <div class="summary-item">
+                            <span class="fw-bold">Total</span>
+                            <span class="fw-bold text-warning" id="summary-grand-total">$0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body px-3 py-3">
+                        <h6 class="fw-bold mb-3" style="font-size:.85rem;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);">M&eacute;todo de pago</h6>
+
+                        <div class="payment-option card p-2 mb-2 rounded-3" data-method="visa" onclick="selectPago('visa')">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-box"><i class="bi bi-credit-card"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">Tarjeta Visa</div>
+                                    <div class="text-muted" style="font-size:.72rem;">Cr&eacute;dito / D&eacute;bito</div>
+                                </div>
+                                <span class="check-mark"></span>
+                            </div>
+                        </div>
+                        <div id="visa-form" class="form-section">
+                            <div class="row g-2">
+                                <div class="col-12"><input type="text" class="form-control form-control-sm" id="visa-number" placeholder="N&uacute;mero de tarjeta" maxlength="19"></div>
+                                <div class="col-5"><input type="text" class="form-control form-control-sm" id="visa-expiry" placeholder="MM/AA" maxlength="5"></div>
+                                <div class="col-4"><input type="text" class="form-control form-control-sm" id="visa-cvv" placeholder="CVV" maxlength="4"></div>
+                                <div class="col-12"><input type="text" class="form-control form-control-sm" id="visa-name" placeholder="Titular"></div>
+                            </div>
+                        </div>
+
+                        <div class="payment-option card p-2 mb-2 rounded-3" data-method="mastercard" onclick="selectPago('mastercard')">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-box"><i class="bi bi-credit-card-2-front"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">Tarjeta Mastercard</div>
+                                    <div class="text-muted" style="font-size:.72rem;">Cr&eacute;dito / D&eacute;bito</div>
+                                </div>
+                                <span class="check-mark"></span>
+                            </div>
+                        </div>
+                        <div id="mastercard-form" class="form-section">
+                            <div class="row g-2">
+                                <div class="col-12"><input type="text" class="form-control form-control-sm" id="mc-number" placeholder="N&uacute;mero de tarjeta" maxlength="19"></div>
+                                <div class="col-5"><input type="text" class="form-control form-control-sm" id="mc-expiry" placeholder="MM/AA" maxlength="5"></div>
+                                <div class="col-4"><input type="text" class="form-control form-control-sm" id="mc-cvv" placeholder="CVV" maxlength="4"></div>
+                                <div class="col-12"><input type="text" class="form-control form-control-sm" id="mc-name" placeholder="Titular"></div>
+                            </div>
+                        </div>
+
+                        <div class="payment-option card p-2 mb-2 rounded-3" data-method="yape" onclick="selectPago('yape')">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-box"><i class="bi bi-phone"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">Yape</div>
+                                    <div class="text-muted" style="font-size:.72rem;">Transferencia m&oacute;vil</div>
+                                </div>
+                                <span class="check-mark"></span>
+                            </div>
+                        </div>
+                        <div id="yape-form" class="form-section">
+                            <div class="row g-2">
+                                <div class="col-8"><input type="tel" class="form-control form-control-sm" id="yape-phone" placeholder="Tel&eacute;fono +51"></div>
+                            </div>
+                            <div class="text-muted small mt-1">Recibir&aacute;s una solicitud en tu app Yape.</div>
+                        </div>
+
+                        <div class="payment-option card p-2 mb-2 rounded-3" data-method="plin" onclick="selectPago('plin')">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-box"><i class="bi bi-phone"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">Plin</div>
+                                    <div class="text-muted" style="font-size:.72rem;">Transferencia m&oacute;vil</div>
+                                </div>
+                                <span class="check-mark"></span>
+                            </div>
+                        </div>
+                        <div id="plin-form" class="form-section">
+                            <div class="row g-2">
+                                <div class="col-8"><input type="tel" class="form-control form-control-sm" id="plin-phone" placeholder="Tel&eacute;fono +51"></div>
+                            </div>
+                            <div class="text-muted small mt-1">Recibir&aacute;s una solicitud en tu app Plin.</div>
+                        </div>
+
+                        <div class="payment-option card p-2 mb-2 rounded-3" data-method="efectivo" onclick="selectPago('efectivo')">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="icon-box"><i class="bi bi-cash"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">Efectivo</div>
+                                    <div class="text-muted" style="font-size:.72rem;">Pago en boleter&iacute;a</div>
+                                </div>
+                                <span class="check-mark"></span>
+                            </div>
+                        </div>
+                        <div id="efectivo-form" class="form-section">
+                            <div class="text-muted small">Seleccionaste pago en efectivo. Realiza el pago en la boleter&iacute;a del cine antes de la funci&oacute;n.</div>
+                        </div>
+
+                        <hr class="my-2 opacity-25">
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control form-control-sm" id="codigo-promo" placeholder="C&oacute;digo promocional" style="text-transform:uppercase;" maxlength="20">
+                            <button class="btn btn-sm btn-outline-warning fw-semibold" onclick="aplicarPromo()" id="btn-aplicar-promo">Aplicar</button>
+                        </div>
+                        <div id="promo-mensaje" class="small mt-1"></div>
+                        <button class="btn btn-warning w-100 fw-bold mt-3 py-2" onclick="procesarPago()">Pagar</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/pago.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window._pagoConfirmado = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('includes/header.html')
+                .then(function(r) { return r.text(); })
+                .then(function(data) {
+                    document.getElementById('header-placeholder').innerHTML = data;
+                });
+            fetch('includes/footer.html')
+                .then(function(r) { return r.text(); })
+                .then(function(data) {
+                    document.getElementById('footer-placeholder').innerHTML = data;
+                });
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (!window._pagoConfirmado) {
+                e.preventDefault();
+                e.returnValue = '';
+                var ids = (_idButaca || '').split(',').filter(function(b) { return b; });
+                ids.forEach(function(id) {
+                    var fd = new FormData();
+                    fd.append('action', 'cambiarEstado');
+                    fd.append('id', id);
+                    fd.append('estado', 'Disponible');
+                    navigator.sendBeacon(API_URL + '/ButacaController', fd);
+                });
+            }
+        });
+    </script>
+<script src="assets/js/utils.js"></script><script src="assets/js/header-auth.js"></script><script src="assets/js/darkmode.js"></script></body>
+</html>
+

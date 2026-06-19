@@ -80,7 +80,7 @@ public class PromocionDaoImpl implements IPromocion {
             st.setString(2, p.getDescripcion());
             st.setInt(3, p.getDescuento());
             st.setInt(4, p.getActivo());
-            st.setInt(5, p.getIdPromocion());
+            st.setInt(5, p.getId_promocion());
             return st.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

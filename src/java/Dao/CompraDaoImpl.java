@@ -88,6 +88,62 @@ public class CompraDaoImpl implements ICompra {
     }
 
     @Override
+    public int insertarLote(List<Compra> compras) {
+        Connection cn = null;
+        PreparedStatement st = null;
+        PreparedStatement up = null;
+        ResultSet rs = null;
+        int lastId = 0;
+        try {
+            cn = ConexionSingleton.getConnection();
+            cn.setAutoCommit(false);
+            st = cn.prepareStatement(
+                "INSERT INTO Compra (id_cliente, id_funcion, id_butaca, precio, metodo_pago, estado, codigo_qr, productos) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                new String[]{"id_compra"}
+            );
+            up = cn.prepareStatement("UPDATE Butaca SET estado='Vendida' WHERE id_butaca=? AND estado IN ('Disponible','Seleccionada')");
+            for (Compra compra : compras) {
+                st.setInt(1, compra.getCliente().getId_cliente());
+                st.setInt(2, compra.getFuncion().getId_funcion());
+                st.setInt(3, compra.getButaca().getId_butaca());
+                st.setDouble(4, compra.getPrecio());
+                st.setString(5, compra.getMetodo_pago());
+                st.setString(6, compra.getEstado());
+                st.setString(7, compra.getCodigo_qr());
+                st.setString(8, compra.getProductos());
+                st.executeUpdate();
+                rs = st.getGeneratedKeys();
+                if (!rs.next()) {
+                    throw new SQLException("No se gener\u00F3 ID de compra");
+                }
+                lastId = rs.getInt(1);
+                rs.close();
+                up.setInt(1, compra.getButaca().getId_butaca());
+                int rows = up.executeUpdate();
+                if (rows == 0) {
+                    throw new SQLException("La butaca " + compra.getButaca().getId_butaca() + " ya est\u00E1 vendida");
+                }
+            }
+            cn.commit();
+            return lastId;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (cn != null) {
+                try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) { }
+            try { if (st != null) st.close(); } catch (SQLException e) { }
+            try { if (up != null) up.close(); } catch (SQLException e) { }
+            if (cn != null) {
+                try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public Compra searchById(int id) {
         Compra compra = null;
         String sql = "SELECT c.*, cl.dni, cl.nombre as cli_nombre, cl.email, cl.telefono, "

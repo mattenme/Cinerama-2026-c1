@@ -1,0 +1,10 @@
+build/
+dist/
+nbproject/private/
+**/.netbeans*
+**/.DS_Store
+*~
+*.log
+*.war
+setenv.bat
+setenv.sh

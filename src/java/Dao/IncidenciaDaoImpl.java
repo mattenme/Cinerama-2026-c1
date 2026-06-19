@@ -117,22 +117,22 @@ public class IncidenciaDaoImpl implements IIncidencia {
         try { if (rs.getObject("id_sala") != null) {
             sala = new Sala(rs.getInt("id_sala"), rs.getString("sala_nombre"),
                 rs.getString("sala_tipo"), rs.getInt("capacidad_total"));
-        }} catch (SQLException e) {}
+        }} catch (SQLException e) { e.printStackTrace(); }
         Funcion fun = null;
         try { if (rs.getObject("id_funcion") != null) {
             Pelicula pel = null;
             try { if (rs.getObject("id_pelicula") != null) {
                 pel = new Pelicula(rs.getInt("id_pelicula"), rs.getString("titulo"),
                     rs.getInt("duracion_minutos"));
-            }} catch (SQLException e) {}
+            }} catch (SQLException e) { e.printStackTrace(); }
             fun = new Funcion(rs.getInt("id_funcion"), pel, sala,
                 rs.getString("hora_inicio"), rs.getString("fun_estado"));
-        }} catch (SQLException e) {}
+        }} catch (SQLException e) { e.printStackTrace(); }
         Cliente cli = null;
         try { if (rs.getObject("id_cliente") != null) {
             cli = new Cliente(rs.getInt("id_cliente"), rs.getString("dni"),
                 rs.getString("cli_nombre"), rs.getString("email"), rs.getString("telefono"));
-        }} catch (SQLException e) {}
+        }} catch (SQLException e) { e.printStackTrace(); }
         Incidencia inc = new Incidencia();
         inc.setId_incidencia(rs.getInt("id_incidencia"));
         inc.setTipo(rs.getString("tipo"));

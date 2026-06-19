@@ -8,6 +8,8 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @WebServlet(name = "CompraController", urlPatterns = {"/CompraController"})
@@ -49,7 +51,7 @@ public class CompraController extends HttpServlet {
             String metodo = req.getParameter("metodo_pago");
             String[] validos = {"Efectivo","Tarjeta Visa","Tarjeta Mastercard","Yape","Plin"};
             boolean valido = false;
-            for (String v : validos) { if (v.equals(metodo)) { valido = true; break; } }
+            for (String v : validos) { if (v.equalsIgnoreCase(metodo)) { valido = true; break; } }
             if (!valido) {
                 resp.getWriter().write("{\"success\":false,\"mensaje\":\"Método de pago inválido\"}");
                 return;
@@ -76,18 +78,18 @@ public class CompraController extends HttpServlet {
                 resp.getWriter().write("{\"success\":false,\"mensaje\":\"No hay butacas\"}");
                 return;
             }
-            double seatPortion = precio / numButacas;
             String productos = req.getParameter("productos");
             String qr = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
             int lastId = 0;
             boolean allOk = true;
-            boolean first = true;
+            boolean firstSeat = true;
             String idClienteStr = req.getParameter("id_cliente");
             if (idClienteStr == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"Cliente requerido\"}"); return; }
             int idCliente = Integer.parseInt(idClienteStr);
             String idFuncionStr = req.getParameter("id_funcion");
             if (idFuncionStr == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"Funci\u00f3n requerida\"}"); return; }
             int idFuncion = Integer.parseInt(idFuncionStr);
+            List<Compra> compras = new ArrayList<>();
             for (String bid : butacaIds) {
                 if (bid.trim().isEmpty()) continue;
                 Compra c = new Compra();
@@ -100,15 +102,20 @@ public class CompraController extends HttpServlet {
                 Butaca b = new Butaca();
                 b.setId_butaca(Integer.parseInt(bid.trim()));
                 c.setButaca(b);
-                c.setPrecio(seatPortion);
+                c.setPrecio(firstSeat ? precio : 0);
                 c.setMetodo_pago(metodo);
                 c.setEstado(req.getParameter("estado"));
-                c.setCodigo_qr(first ? qr : qr + "_" + bid.trim());
-                c.setProductos(first ? productos : null);
-                lastId = compraDao.insertar(c);
-                if (lastId <= 0) allOk = false;
-                first = false;
+                c.setCodigo_qr(qr);
+                c.setProductos(productos);
+                compras.add(c);
+                firstSeat = false;
             }
+            if (compras.isEmpty()) {
+                resp.getWriter().write("{\"success\":false,\"mensaje\":\"No hay butacas v\u00e1lidas\"}");
+                return;
+            }
+            lastId = compraDao.insertarLote(compras);
+            allOk = lastId > 0;
             resp.getWriter().write("{\"success\":" + allOk + ", \"id\":" + lastId + "}");
         } else if ("delete".equals(action)) {
             String idStr = req.getParameter("id");

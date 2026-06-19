@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinerama | Promociones</title>
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="shortcut icon" href="../assets/img/C_ine.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+    <div class="admin-layout">
+        <div id="sidebar-placeholder"></div>
+        <div class="admin-content">
+            <main>
+                <div class="container my-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="fw-bold mb-0">Promociones</h1>
+                    <button class="btn btn-warning fw-bold" onclick="mostrarFormulario()">+ Nueva Promoción</button>
+                </div>
+
+                <div id="formulario" class="card p-4 mb-4 bg-light border-0 d-none">
+                    <h3 class="mb-3" id="form-titulo">Nueva Promoción</h3>
+                    <form onsubmit="guardar(event)">
+                        <input type="hidden" id="edit-id" value="">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Código:</label>
+                                <input type="text" class="form-control" id="codigo" placeholder="Ej: CINERAMA20" required style="text-transform:uppercase;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Descuento (%):</label>
+                                <input type="number" class="form-control" id="descuento" min="1" max="100" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Descripción:</label>
+                                <input type="text" class="form-control" id="descripcion" placeholder="Ej: Descuento especial">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Activo:</label>
+                                <select class="form-select" id="activo">
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-success" id="btn-guardar">Guardar</button>
+                            <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="mb-3">
+                    <input type="text" class="form-control" placeholder="Buscar en esta lista..." id="buscador" onkeyup="filtrarTabla()">
+                </div>
+
+                <div class="table-responsive table-card">
+                    <table class="table table-striped table-hover align-middle" id="tabla-promociones">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Descuento</th>
+                                <th>Activo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/admin/promociones.js"></script>
+    <script src="../assets/js/utils.js"></script><script src="../assets/js/header-auth.js"></script><script src="../assets/js/darkmode.js"></script></body>
+</html>
+
+
+
+

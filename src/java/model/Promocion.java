@@ -1,7 +1,7 @@
 package model;
 
 public class Promocion {
-    private int idPromocion;
+    private int id_promocion;
     private String codigo;
     private String descripcion;
     private int descuento;
@@ -9,16 +9,16 @@ public class Promocion {
 
     public Promocion() {}
 
-    public Promocion(int idPromocion, String codigo, String descripcion, int descuento, int activo) {
-        this.idPromocion = idPromocion;
+    public Promocion(int id_promocion, String codigo, String descripcion, int descuento, int activo) {
+        this.id_promocion = id_promocion;
         this.codigo = codigo;
         this.descripcion = descripcion;
         this.descuento = descuento;
         this.activo = activo;
     }
 
-    public int getIdPromocion() { return idPromocion; }
-    public void setIdPromocion(int idPromocion) { this.idPromocion = idPromocion; }
+    public int getId_promocion() { return id_promocion; }
+    public void setId_promocion(int id_promocion) { this.id_promocion = id_promocion; }
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
     public String getDescripcion() { return descripcion; }

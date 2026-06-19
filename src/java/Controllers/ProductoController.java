@@ -60,7 +60,7 @@ public class ProductoController extends HttpServlet {
                 p.setPrecio(Double.parseDouble(req.getParameter("precio")));
                 p.setCategoria(req.getParameter("categoria"));
                 p.setActivo("1".equals(req.getParameter("activo")) || "true".equals(req.getParameter("activo")));
-                String img = subirImagen(req);
+                String img = subirImagen(req, req.getContextPath());
                 p.setImagen_url(img != null ? img : req.getParameter("imagen_url"));
                 int id = prodDao.insertar(p);
                 ok = id > 0;
@@ -72,7 +72,7 @@ public class ProductoController extends HttpServlet {
                     p.setPrecio(Double.parseDouble(req.getParameter("precio")));
                     p.setCategoria(req.getParameter("categoria"));
                     p.setActivo("1".equals(req.getParameter("activo")) || "true".equals(req.getParameter("activo")));
-                    String img = subirImagen(req);
+                    String img = subirImagen(req, req.getContextPath());
                     if (img != null) {
                         borrarImagenAnterior(p.getImagen_url(), req);
                         p.setImagen_url(img);
@@ -100,11 +100,18 @@ public class ProductoController extends HttpServlet {
     }
 
     private String rootPath() {
+        String cb = System.getProperty("catalina.base");
+        if (cb != null) {
+            File src = new File(new File(cb).getParentFile(), "Cinerama_1\\web");
+            if (src.isDirectory()) {
+                return src.getAbsolutePath().endsWith(File.separator) ? src.getAbsolutePath() : src.getAbsolutePath() + File.separator;
+            }
+        }
         String r = getServletContext().getRealPath("/");
         return r.endsWith(File.separator) ? r : r + File.separator;
     }
 
-    private String subirImagen(HttpServletRequest req) throws ServletException, IOException {
+    private String subirImagen(HttpServletRequest req, String ctxPath) throws ServletException, IOException {
         String ct = req.getContentType();
         if (ct == null || !ct.toLowerCase().startsWith("multipart/")) return null;
         Part filePart = req.getPart("imagen");
@@ -133,16 +140,17 @@ public class ProductoController extends HttpServlet {
                 ImageIO.write(original, format, outFile);
             }
         } else {
-            filePart.write(dir + File.separator + uniqueName);
+            return null;
         }
-        return "/Cinerama_1/assets/img/comida/" + uniqueName;
+        return ctxPath + "/assets/img/comida/" + uniqueName;
     }
 
     private void borrarImagenAnterior(String ruta, HttpServletRequest req) {
         if (ruta == null || ruta.startsWith("http")) return;
         try {
+            String ctx = req.getContextPath();
             String relative = ruta;
-            if (relative.startsWith("/Cinerama_1/")) relative = relative.substring("/Cinerama_1/".length());
+            if (relative.startsWith(ctx + "/")) relative = relative.substring(ctx.length() + 1);
             else if (relative.startsWith("/")) relative = relative.substring(1);
             String pathFile = rootPath() + relative.replace("/", File.separator);
             new File(pathFile).delete();

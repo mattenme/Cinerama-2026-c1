@@ -38,7 +38,9 @@ public class FuncionDaoImpl implements IFuncion {
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, fun.getPelicula().getId_pelicula());
             st.setInt(2, fun.getSala().getId_sala());
-            st.setTimestamp(3, parseHora(fun.getHora_inicio()));
+            java.sql.Timestamp ts = parseHora(fun.getHora_inicio());
+            if (ts == null) return false;
+            st.setTimestamp(3, ts);
             st.setString(4, fun.getEstado());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -54,7 +56,9 @@ public class FuncionDaoImpl implements IFuncion {
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, fun.getPelicula().getId_pelicula());
             st.setInt(2, fun.getSala().getId_sala());
-            st.setTimestamp(3, parseHora(fun.getHora_inicio()));
+            java.sql.Timestamp ts = parseHora(fun.getHora_inicio());
+            if (ts == null) return false;
+            st.setTimestamp(3, ts);
             st.setString(4, fun.getEstado());
             st.setInt(5, fun.getId_funcion());
             return st.executeUpdate() > 0;
