@@ -72,6 +72,10 @@ public class FuncionController extends HttpServlet {
                     ok = funcionDao.update(f);
                 }
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"error\":\"No autorizado\"}");
+                    return;
+                }
                 ok = funcionDao.delete(Integer.parseInt(req.getParameter("id")));
             }
         } catch (NumberFormatException e) {

@@ -107,6 +107,10 @@ public class PromocionController extends HttpServlet {
                     break;
                 }
                 case "delete": {
+                    if (!utils.AuthUtil.esAdmin(req)) {
+                        resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                        return;
+                    }
                     String idStr = req.getParameter("id");
                     if (idStr == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID requerido\"}"); return; }
                     promoDao.eliminar(Integer.parseInt(idStr));

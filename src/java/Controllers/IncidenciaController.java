@@ -89,6 +89,10 @@ public class IncidenciaController extends HttpServlet {
                     ok = incDao.update(i);
                 }
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = incDao.delete(Integer.parseInt(req.getParameter("id")));
             }
         } catch (NumberFormatException e) {

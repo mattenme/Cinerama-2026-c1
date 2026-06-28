@@ -24,44 +24,6 @@
                     <button class="btn btn-warning fw-bold" onclick="mostrarFormulario()">+ Nuevo Horario</button>
                 </div>
 
-                <div id="formulario-horario" class="card p-4 mb-4 bg-light border-0 d-none">
-                    <h3 class="mb-3" id="form-titulo">Nuevo Horario</h3>
-                    <form onsubmit="guardarHorario(event)">
-                        <input type="hidden" id="edit-id" value="">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="id_pelicula" class="form-label fw-semibold">Película:</label>
-                                <select class="form-select" id="id_pelicula" name="id_pelicula" required>
-                                    <option value="">Seleccionar película</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="id_sala" class="form-label fw-semibold">Sala:</label>
-                                <select class="form-select" id="id_sala" name="id_sala" required>
-                                    <option value="">Seleccionar sala</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="hora_inicio" class="form-label fw-semibold">Fecha y Hora:</label>
-                                <input type="datetime-local" class="form-control" id="hora_inicio" name="hora_inicio" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="estado" class="form-label fw-semibold">Estado:</label>
-                                <select class="form-select" id="estado" name="estado" required>
-                                    <option value="Programada">Programada</option>
-                                    <option value="En curso">En curso</option>
-                                    <option value="Finalizada">Finalizada</option>
-                                    <option value="Cancelada">Cancelada</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="btn-guardar">Guardar</button>
-                            <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="Buscar en esta lista..." id="buscador" onkeyup="filtrarTabla()">
                 </div>

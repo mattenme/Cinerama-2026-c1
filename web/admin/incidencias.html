@@ -21,52 +21,6 @@
                     <button class="btn btn-warning fw-bold" onclick="mostrarFormulario()">+ Nueva Incidencia</button>
                 </div>
 
-                <div id="formulario" class="card p-4 mb-4 bg-light border-0 d-none">
-                    <h3 class="mb-3" id="form-titulo">Nueva Incidencia</h3>
-                    <form onsubmit="guardar(event)">
-                        <input type="hidden" id="edit-id" value="">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Tipo:</label>
-                                <select class="form-select" id="tipo" required>
-                                    <option value="">Seleccionar tipo</option>
-                                    <option value="fallo_tecnico">Fallo Técnico</option>
-                                    <option value="limpieza">Limpieza</option>
-                                    <option value="seguridad">Seguridad</option>
-                                    <option value="cliente">Queja de Cliente</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">ID Cliente:</label>
-                                <input type="number" class="form-control" id="id_cliente" placeholder="Opcional">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Sala (opcional):</label>
-                                <select class="form-select" id="id_sala">
-                                    <option value="">Ninguna</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Descripci&oacute;n:</label>
-                                <textarea class="form-control" id="descripcion" rows="3" placeholder="Describe la incidencia..." required></textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Estado:</label>
-                                <select class="form-select" id="estado" required>
-                                    <option value="reportado">Reportado</option>
-                                    <option value="en_proceso">En Proceso</option>
-                                    <option value="resuelto">Resuelto</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="btn-guardar">Guardar</button>
-                            <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="Buscar en esta lista..." id="buscador" onkeyup="filtrarTabla()">
                 </div>

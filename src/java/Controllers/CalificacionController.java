@@ -54,6 +54,10 @@ public class CalificacionController extends HttpServlet {
                 c.setComentario(req.getParameter("comentario"));
                 ok = calDao.insertar(c);
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = calDao.delete(
                     Integer.parseInt(req.getParameter("id_cliente")),
                     Integer.parseInt(req.getParameter("id_pelicula"))

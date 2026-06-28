@@ -82,6 +82,10 @@ public class ProductoController extends HttpServlet {
                     ok = prodDao.update(p);
                 }
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Producto p = prodDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (p != null) {
                     ok = prodDao.delete(p.getId_producto());
@@ -100,13 +104,6 @@ public class ProductoController extends HttpServlet {
     }
 
     private String rootPath() {
-        String cb = System.getProperty("catalina.base");
-        if (cb != null) {
-            File src = new File(new File(cb).getParentFile(), "Cinerama_1\\web");
-            if (src.isDirectory()) {
-                return src.getAbsolutePath().endsWith(File.separator) ? src.getAbsolutePath() : src.getAbsolutePath() + File.separator;
-            }
-        }
         String r = getServletContext().getRealPath("/");
         return r.endsWith(File.separator) ? r : r + File.separator;
     }

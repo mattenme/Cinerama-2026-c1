@@ -65,6 +65,10 @@ public class SalaController extends HttpServlet {
                     ok = salaDao.update(s);
                 }
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = salaDao.delete(Integer.parseInt(req.getParameter("id")));
             }
         } catch (NumberFormatException e) {

@@ -191,11 +191,16 @@
                 e.returnValue = '';
                 var ids = (_idButaca || '').split(',').filter(function(b) { return b; });
                 ids.forEach(function(id) {
-                    var fd = new FormData();
-                    fd.append('action', 'cambiarEstado');
-                    fd.append('id', id);
-                    fd.append('estado', 'Disponible');
-                    navigator.sendBeacon(API_URL + '/ButacaController', fd);
+                    var params = new URLSearchParams();
+                    params.append('action', 'cambiarEstado');
+                    params.append('id', id);
+                    params.append('estado', 'Disponible');
+                    fetch(API_URL + '/ButacaController', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params,
+                        keepalive: true
+                    });
                 });
             }
         });

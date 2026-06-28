@@ -80,10 +80,14 @@ public class PeliculaController extends HttpServlet {
                     ok = peliculaDao.update(p);
                 }
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"error\":\"No autorizado\"}");
+                    return;
+                }
                 Pelicula p = peliculaDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (p != null) {
-                    borrarImagenAnterior(p.getImagen_url(), req);
                     ok = peliculaDao.delete(p.getId_pelicula());
+                    if (ok) borrarImagenAnterior(p.getImagen_url(), req);
                 }
             }
             resp.getWriter().write("{\"success\":" + ok + "}");
@@ -96,13 +100,6 @@ public class PeliculaController extends HttpServlet {
     }
 
     private String rootPath() {
-        String cb = System.getProperty("catalina.base");
-        if (cb != null) {
-            File src = new File(new File(cb).getParentFile(), "Cinerama_1\\web");
-            if (src.isDirectory()) {
-                return src.getAbsolutePath().endsWith(File.separator) ? src.getAbsolutePath() : src.getAbsolutePath() + File.separator;
-            }
-        }
         String r = getServletContext().getRealPath("/");
         return r.endsWith(File.separator) ? r : r + File.separator;
     }

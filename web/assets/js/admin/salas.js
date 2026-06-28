@@ -30,27 +30,27 @@ let editandoId = null;
         });
 
         function mostrarFormulario(data) {
-            document.getElementById('formulario-sala').classList.remove('d-none');
+            editandoId = data ? data.id_sala : null;
+            var formHtml = '<form id="form-sala">' +
+                '<div class="row g-3">' +
+                    '<div class="col-12"><label class="form-label fw-semibold">Nombre de Sala:</label><input type="text" class="form-control" id="nombre" required></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Tipo de Sala:</label><select class="form-select" id="tipo" required><option value="">Seleccionar tipo</option><option value="2d">2D</option><option value="3d">3D</option><option value="imax">IMAX</option><option value="vip">VIP</option></select></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Capacidad:</label><input type="number" class="form-control" id="capacidad_total" min="20" max="500" required></div>' +
+                '</div>' +
+                '<div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-success">' + (editandoId ? 'Actualizar' : 'Guardar') + '</button><button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button></div>' +
+            '</form>';
+            openCrudModal(editandoId ? 'Editar Sala #' + data.id_sala : 'Nueva Sala', formHtml, function() {
+                guardarSala();
+            });
             if (data) {
-                editandoId = data.id_sala;
-                document.getElementById('form-titulo').textContent = 'Editar Sala #' + data.id_sala;
-                document.getElementById('btn-guardar').textContent = 'Actualizar';
                 document.getElementById('nombre').value = data.nombre || '';
                 document.getElementById('tipo').value = data.tipo || '';
                 document.getElementById('capacidad_total').value = data.capacidad_total || '';
-            } else {
-                editandoId = null;
-                document.getElementById('form-titulo').textContent = 'Nueva Sala';
-                document.getElementById('btn-guardar').textContent = 'Guardar';
-                document.getElementById('nombre').value = '';
-                document.getElementById('tipo').value = '';
-                document.getElementById('capacidad_total').value = '';
             }
         }
 
         function ocultarFormulario() {
-            document.getElementById('formulario-sala').classList.add('d-none');
-            editandoId = null;
+            closeCrudModal();
         }
 
         function cargarTabla() {
@@ -126,8 +126,7 @@ let editandoId = null;
             }, 15000);
         }
 
-        window.guardarSala = function(event) {
-            event.preventDefault();
+        window.guardarSala = function() {
             var datos = {
                 nombre: document.getElementById('nombre').value,
                 tipo: document.getElementById('tipo').value,

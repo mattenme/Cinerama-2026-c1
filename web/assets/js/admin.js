@@ -88,4 +88,34 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
         try { new bootstrap.Tooltip(el); } catch(e) {}
     });
+    var m = document.getElementById('modal-crud');
+    if (!m) {
+        m = document.createElement('div');
+        m.id = 'modal-crud';
+        m.className = 'modal fade';
+        m.tabIndex = -1;
+        m.setAttribute('aria-hidden', 'true');
+        m.innerHTML = '<div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content bg-dark text-white"><div class="modal-header border-secondary"><h5 class="modal-title" id="modal-crud-titulo"></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modal-crud-body"></div></div></div>';
+        document.body.appendChild(m);
+    }
 });
+
+function openCrudModal(titulo, formHtml, onSave) {
+    document.getElementById('modal-crud-titulo').textContent = titulo;
+    document.getElementById('modal-crud-body').innerHTML = formHtml;
+    _crudEditandoId = null;
+    var modal = new bootstrap.Modal(document.getElementById('modal-crud'));
+    modal.show();
+    var form = document.querySelector('#modal-crud-body form');
+    if (form) {
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            onSave();
+        };
+    }
+}
+
+function closeCrudModal() {
+    var modal = bootstrap.Modal.getInstance(document.getElementById('modal-crud'));
+    if (modal) modal.hide();
+}

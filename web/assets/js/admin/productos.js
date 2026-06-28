@@ -23,32 +23,32 @@ let editandoId = null;
         });
 
         function mostrarFormulario(data) {
-            document.getElementById('formulario').classList.remove('d-none');
-            document.getElementById('imagen').value = '';
+            editandoId = data ? data.id_producto : null;
+            var formHtml = '<form id="form-producto" enctype="multipart/form-data">' +
+                '<div class="row g-3">' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Nombre:</label><input type="text" class="form-control" id="nombre" required></div>' +
+                    '<div class="col-md-3"><label class="form-label fw-semibold">Precio (S/):</label><input type="number" step="0.01" class="form-control" id="precio" min="0" required></div>' +
+                    '<div class="col-md-3"><label class="form-label fw-semibold">Categor\u00eda:</label><select class="form-select" id="categoria"><option value="Comida">Comida</option><option value="Bebida">Bebida</option><option value="Combo">Combo</option></select></div>' +
+                    '<div class="col-12"><label class="form-label fw-semibold">Descripci\u00f3n:</label><textarea class="form-control" id="descripcion" rows="2"></textarea></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Imagen:</label><input type="file" class="form-control mb-2" id="imagen" accept="image/*"><input type="url" class="form-control" id="imagen_url" placeholder="O pega una URL (https://...)"></div>' +
+                    '<div class="col-md-6 d-flex align-items-end pb-2"><div class="form-check"><input type="checkbox" class="form-check-input" id="activo" checked><label class="form-check-label fw-semibold" for="activo">Activo</label></div></div>' +
+                '</div>' +
+                '<div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-success">' + (editandoId ? 'Actualizar' : 'Guardar') + '</button><button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button></div>' +
+            '</form>';
+            openCrudModal(editandoId ? 'Editar Producto #' + data.id_producto : 'Nuevo Producto', formHtml, function() {
+                guardar();
+            });
             if (data) {
-                editandoId = data.id_producto;
-                document.getElementById('form-titulo').textContent = 'Editar Producto #' + data.id_producto;
-                document.getElementById('btn-guardar').textContent = 'Actualizar';
                 document.getElementById('nombre').value = data.nombre || '';
                 document.getElementById('precio').value = data.precio || '';
                 document.getElementById('categoria').value = data.categoria || 'Comida';
                 document.getElementById('descripcion').value = data.descripcion || '';
                 document.getElementById('imagen_url').value = data.imagen_url || '';
                 document.getElementById('activo').checked = data.activo === true || data.activo === 'true';
-            } else {
-                editandoId = null;
-                document.getElementById('form-titulo').textContent = 'Nuevo Producto';
-                document.getElementById('btn-guardar').textContent = 'Guardar';
-                document.getElementById('nombre').value = '';
-                document.getElementById('precio').value = '';
-                document.getElementById('categoria').value = 'Comida';
-                document.getElementById('descripcion').value = '';
-                document.getElementById('imagen_url').value = '';
-                document.getElementById('activo').checked = true;
             }
         }
 
-        function ocultarFormulario() { document.getElementById('formulario').classList.add('d-none'); editandoId = null; }
+        function ocultarFormulario() { closeCrudModal(); }
 
         function cargarTabla() {
             const tbody = document.querySelector('#tabla tbody');
@@ -87,8 +87,7 @@ let editandoId = null;
             });
         }
 
-        window.guardar = function(e) {
-            e.preventDefault();
+        window.guardar = function() {
             const fd = new FormData();
             fd.append('action', editandoId ? 'update' : 'insertar');
             if (editandoId) fd.append('id', editandoId);

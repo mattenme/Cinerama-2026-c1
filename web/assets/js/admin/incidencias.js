@@ -23,28 +23,42 @@ let editandoId = null;
         });
 
         function mostrarFormulario(data) {
-            document.getElementById('formulario').classList.remove('d-none');
+            editandoId = data ? data.id_incidencia : null;
+            var formHtml = '<form id="form-incidencia">' +
+                '<div class="row g-3">' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Tipo:</label><select class="form-select" id="tipo" required><option value="">Seleccionar tipo</option><option value="fallo_tecnico">Fallo T\u00e9cnico</option><option value="limpieza">Limpieza</option><option value="seguridad">Seguridad</option><option value="cliente">Queja de Cliente</option><option value="otro">Otro</option></select></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">ID Cliente:</label><input type="number" class="form-control" id="id_cliente" placeholder="Opcional"></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Sala (opcional):</label><select class="form-select" id="id_sala"><option value="">Ninguna</option></select></div>' +
+                    '<div class="col-12"><label class="form-label fw-semibold">Descripci\u00f3n:</label><textarea class="form-control" id="descripcion" rows="3" placeholder="Describe la incidencia..." required></textarea></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Estado:</label><select class="form-select" id="estado" required><option value="reportado">Reportado</option><option value="en_proceso">En Proceso</option><option value="resuelto">Resuelto</option></select></div>' +
+                '</div>' +
+                '<div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-success">' + (editandoId ? 'Actualizar' : 'Guardar') + '</button><button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button></div>' +
+            '</form>';
+            openCrudModal(editandoId ? 'Editar Incidencia #' + data.id_incidencia : 'Nueva Incidencia', formHtml, function() {
+                guardar();
+            });
             if (data) {
-                editandoId = data.id_incidencia;
-                document.getElementById('form-titulo').textContent = 'Editar Incidencia #' + data.id_incidencia;
-                document.getElementById('btn-guardar').textContent = 'Actualizar';
                 document.getElementById('tipo').value = data.tipo || '';
                 document.getElementById('descripcion').value = data.descripcion || '';
                 document.getElementById('id_cliente').value = data.cliente ? data.cliente.id_cliente : '';
                 document.getElementById('id_sala').value = data.sala ? data.sala.id_sala : '';
                 document.getElementById('estado').value = data.estado || 'reportado';
-            } else {
-                editandoId = null;
-                document.getElementById('form-titulo').textContent = 'Nueva Incidencia';
-                document.getElementById('btn-guardar').textContent = 'Guardar';
-                document.getElementById('tipo').value = '';
-                document.getElementById('id_cliente').value = '';
-                document.getElementById('id_sala').value = '';
-                document.getElementById('estado').value = 'reportado';
             }
+            cargarSelectSalas();
         }
 
-        function ocultarFormulario() { document.getElementById('formulario').classList.add('d-none'); editandoId = null; }
+        function ocultarFormulario() { closeCrudModal(); }
+
+        function cargarSelectSalas() {
+            Api.sala.listar().then(salas => {
+                var sel = document.getElementById('id_sala');
+                if (sel) {
+                    var val = sel.value;
+                    sel.innerHTML = '<option value="">Ninguna</option>' + salas.map(s => '<option value="' + s.id_sala + '">' + s.nombre + '</option>').join('');
+                    sel.value = val;
+                }
+            });
+        }
 
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-incidencias tbody');
@@ -83,8 +97,7 @@ let editandoId = null;
             });
         }
 
-        window.guardar = function(e) {
-            e.preventDefault();
+        window.guardar = function() {
             const datos = {
                 tipo: document.getElementById('tipo').value,
                 descripcion: document.getElementById('descripcion').value,

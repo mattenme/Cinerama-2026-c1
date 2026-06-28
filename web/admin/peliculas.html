@@ -21,46 +21,6 @@
                     <button class="btn btn-warning fw-bold" onclick="mostrarFormulario()">+ Nueva Película</button>
                 </div>
 
-                <div id="formulario-pelicula" class="card p-4 mb-4 bg-light border-0 d-none">
-                    <h3 class="mb-3" id="form-titulo">Nueva Película</h3>
-                    <form onsubmit="guardarPelicula(event)">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label for="titulo" class="form-label fw-semibold">Título:</label>
-                                <input type="text" class="form-control" id="titulo" name="titulo" required>
-                            </div>
-                            <div class="col-6">
-                                <label for="duracion_minutos" class="form-label fw-semibold">Duración (minutos):</label>
-                                <input type="number" class="form-control" id="duracion_minutos" name="duracion_minutos" min="30" max="300" required>
-                            </div>
-                            <div class="col-6">
-                                <label for="genero" class="form-label fw-semibold">Género:</label>
-                                <input type="text" class="form-control" id="genero" name="genero" placeholder="Ej: Acción, Drama">
-                            </div>
-                            <div class="col-12">
-                                <label for="sinopsis" class="form-label fw-semibold">Sinopsis:</label>
-                                <textarea class="form-control" id="sinopsis" name="sinopsis" rows="3" placeholder="Breve descripción de la película"></textarea>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Imagen:</label>
-                                <input type="file" class="form-control mb-2" id="imagen" name="imagen" accept="image/*">
-                                <input type="url" class="form-control" id="imagen_url" name="imagen_url" placeholder="O pega una URL (https://...)">
-                            </div>
-                            <div class="col-6 d-flex align-items-end">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="destacado" value="1">
-                                    <label class="form-check-label fw-semibold" for="destacado">Mostrar en p&aacute;gina principal</label>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="mt-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="btn-guardar">Guardar</button>
-                            <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="Buscar en esta lista..." id="buscador" onkeyup="filtrarTabla()">
                 </div>

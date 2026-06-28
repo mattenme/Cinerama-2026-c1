@@ -54,31 +54,33 @@ let editandoId = null;
         }
 
         function mostrarFormulario(data) {
-            document.getElementById('formulario-horario').classList.remove('d-none');
+            editandoId = data ? data.id_funcion : null;
+            var formHtml = '<form id="form-horario">' +
+                '<div class="row g-3">' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Pel\u00edcula:</label><select class="form-select" id="id_pelicula" required><option value="">Cargando...</option></select></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Sala:</label><select class="form-select" id="id_sala" required><option value="">Cargando...</option></select></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Fecha y Hora:</label><input type="datetime-local" class="form-control" id="hora_inicio" required></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Estado:</label><select class="form-select" id="estado" required><option value="Programada">Programada</option><option value="En curso">En curso</option><option value="Finalizada">Finalizada</option><option value="Cancelada">Cancelada</option></select></div>' +
+                '</div>' +
+                '<div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-success">' + (editandoId ? 'Actualizar' : 'Guardar') + '</button><button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button></div>' +
+            '</form>';
+            openCrudModal(editandoId ? 'Editar Horario #' + data.id_funcion : 'Nuevo Horario', formHtml, function() {
+                guardarHorario();
+            });
             cargarSelects();
             if (data) {
-                editandoId = data.id_funcion;
-                document.getElementById('form-titulo').textContent = 'Editar Horario #' + data.id_funcion;
-                document.getElementById('btn-guardar').textContent = 'Actualizar';
                 document.getElementById('id_pelicula').value = data.pelicula ? data.pelicula.id_pelicula : '';
                 document.getElementById('id_sala').value = data.sala ? data.sala.id_sala : '';
                 document.getElementById('hora_inicio').value = data.hora_inicio ? data.hora_inicio.substring(0, 16) : '';
                 document.getElementById('estado').value = data.estado || 'activa';
             } else {
-                editandoId = null;
-                document.getElementById('form-titulo').textContent = 'Nuevo Horario';
-                document.getElementById('btn-guardar').textContent = 'Guardar';
-                document.getElementById('edit-id').value = '';
-                document.getElementById('hora_inicio').value = '';
-                document.getElementById('estado').value = 'Programada';
                 if (filtroPelicula) document.getElementById('id_pelicula').value = filtroPelicula;
                 if (filtroSala) document.getElementById('id_sala').value = filtroSala;
             }
         }
 
         function ocultarFormulario() {
-            document.getElementById('formulario-horario').classList.add('d-none');
-            editandoId = null;
+            closeCrudModal();
         }
 
         function cargarTabla() {
@@ -130,8 +132,7 @@ let editandoId = null;
             });
         }
 
-        window.guardarHorario = function(event) {
-            event.preventDefault();
+        window.guardarHorario = function() {
             const datos = {
                 id_pelicula: document.getElementById('id_pelicula').value,
                 id_sala: document.getElementById('id_sala').value,

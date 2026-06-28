@@ -81,6 +81,10 @@ public class ClienteController extends HttpServlet {
                     resp.getWriter().write("{\"success\":false}");
                 }
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 boolean ok = clienteDao.delete(Integer.parseInt(req.getParameter("id")));
                 resp.getWriter().write("{\"success\":" + ok + "}");
             }

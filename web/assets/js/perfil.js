@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             (cliente.email ? '<p class="mb-0 opacity-75">' + cliente.email + '</p>' : '') +
                             (cliente.telefono ? '<p class="mb-0 opacity-75">' + cliente.telefono + '</p>' : '') +
                         '</div>' +
-                        '<div class="col-auto">' +
+                        '<div class="col-auto d-flex gap-2">' +
+                            '<button class="btn btn-outline-warning d-none" id="btn-reportar-incidencia" onclick="reportarIncidencia()">Reportar Incidencia</button>' +
                             '<button class="btn btn-outline-light" onclick="mostrarEditar(\'' + cliente.nombre + '\',\'' + (cliente.email||'') + '\',\'' + (cliente.telefono||'') + '\')">Editar Perfil</button>' +
                         '</div>' +
                     '</div>' +
@@ -110,6 +111,19 @@ function cargarHistorial(clienteId) {
             tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Sin compras</td></tr>';
             return;
         }
+        var btn = document.getElementById('btn-reportar-incidencia');
+        if (btn) btn.classList.remove('d-none');
+        _salasVisitadas = [];
+        var addedSalas = {};
+        trans.forEach(function(c) {
+            if (c.funcion && c.funcion.sala) {
+                var s = c.funcion.sala;
+                if (!addedSalas[s.id_sala]) {
+                    addedSalas[s.id_sala] = true;
+                    _salasVisitadas.push({ id_sala: s.id_sala, nombre: s.nombre, tipo: s.tipo || '' });
+                }
+            }
+        });
         var calMap = {};
         calificaciones.forEach(function(cal) { calMap[String(cal.id_pelicula)] = cal; });
         var grupos = {};
@@ -238,6 +252,109 @@ function enviarCalificacion() {
         }
     })
     .catch(function() { showError('Error de conexi\u00F3n'); });
+}
+
+var _salasVisitadas = [];
+
+function reportarIncidencia() {
+    var modal = document.getElementById('incidencia-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'incidencia-modal';
+        modal.className = 'modal fade';
+        modal.tabIndex = -1;
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered">' +
+                '<div class="modal-content bg-dark text-white">' +
+                    '<div class="modal-header border-secondary">' +
+                        '<h5 class="modal-title">Reportar Incidencia</h5>' +
+                        '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<form id="form-incidencia-cliente">' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Tipo:</label>' +
+                                '<select class="form-select" id="inc-tipo" required>' +
+                                    '<option value="">Seleccionar</option>' +
+                                    '<option value="fallo_tecnico">Fallo T\u00e9cnico</option>' +
+                                    '<option value="limpieza">Limpieza</option>' +
+                                    '<option value="seguridad">Seguridad</option>' +
+                                    '<option value="otro">Otro</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Sala:</label>' +
+                                '<select class="form-select" id="inc-sala">' +
+                                    '<option value="">Seleccionar sala</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Descripci\u00f3n:</label>' +
+                                '<textarea class="form-control" id="inc-descripcion" rows="3" placeholder="Describe el problema..." required></textarea>' +
+                            '</div>' +
+                            '<div class="d-flex gap-2">' +
+                                '<button type="submit" class="btn btn-warning fw-bold">Enviar Reporte</button>' +
+                                '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>' +
+                            '</div>' +
+                        '</form>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(modal);
+        modal.addEventListener('hidden.bs.modal', function() {
+            if (document.activeElement) document.activeElement.blur();
+        });
+        document.getElementById('form-incidencia-cliente').onsubmit = function(e) {
+            e.preventDefault();
+            var tipo = document.getElementById('inc-tipo').value;
+            var idSala = document.getElementById('inc-sala').value;
+            var desc = document.getElementById('inc-descripcion').value;
+            if (!tipo || !desc) { showError('Completa todos los campos'); return; }
+            var params = new URLSearchParams();
+            params.append('action', 'insertar');
+            params.append('tipo', tipo);
+            params.append('descripcion', desc);
+            params.append('id_cliente', localStorage.getItem('clienteId'));
+            if (idSala) params.append('id_sala', idSala);
+            params.append('estado', 'reportado');
+            fetch(API_URL + '/IncidenciaController', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (res.success) {
+                    var bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                    showSuccess('Incidencia reportada. Gracias!');
+                    document.getElementById('form-incidencia-cliente').reset();
+                } else {
+                    showError(res.mensaje || 'Error al reportar');
+                }
+            })
+            .catch(function() { showError('Error de conexi\u00f3n'); });
+        };
+    }
+
+    var selSala = document.getElementById('inc-sala');
+    selSala.innerHTML = '<option value="">Seleccionar sala</option>';
+    var added = {};
+    _salasVisitadas.forEach(function(s) {
+        var key = s.id_sala;
+        if (!added[key]) {
+            added[key] = true;
+            var opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = s.nombre + ' (' + s.tipo + ')';
+            selSala.appendChild(opt);
+        }
+    });
+
+    document.getElementById('form-incidencia-cliente').reset();
+    var bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
 }
 
 function formatearFecha(dt) {

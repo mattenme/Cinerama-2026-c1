@@ -23,34 +23,34 @@ let editandoId = null;
         });
 
         function mostrarFormulario(data) {
-            document.getElementById('formulario-pelicula').classList.remove('d-none');
-                document.getElementById('imagen').value = '';
-            if (data) {
-                editandoId = data.id_pelicula;
-                document.getElementById('form-titulo').textContent = 'Editar Pel\u00EDcula #' + data.id_pelicula;
-                document.getElementById('btn-guardar').textContent = 'Actualizar';
+            var isEdit = data != null;
+            editandoId = isEdit ? data.id_pelicula : null;
+            var formHtml = '<form id="form-pelicula" enctype="multipart/form-data">' +
+                '<div class="row g-3">' +
+                    '<div class="col-12"><label class="form-label fw-semibold">T\u00edtulo:</label><input type="text" class="form-control" id="titulo" required></div>' +
+                    '<div class="col-6"><label class="form-label fw-semibold">Duraci\u00f3n (minutos):</label><input type="number" class="form-control" id="duracion_minutos" min="30" max="300" required></div>' +
+                    '<div class="col-6"><label class="form-label fw-semibold">G\u00e9nero:</label><input type="text" class="form-control" id="genero" placeholder="Ej: Acci\u00f3n, Drama"></div>' +
+                    '<div class="col-12"><label class="form-label fw-semibold">Sinopsis:</label><textarea class="form-control" id="sinopsis" rows="3" placeholder="Breve descripci\u00f3n de la pel\u00edcula"></textarea></div>' +
+                    '<div class="col-6"><label class="form-label fw-semibold">Imagen:</label><input type="file" class="form-control mb-2" id="imagen" accept="image/*"><input type="url" class="form-control" id="imagen_url" placeholder="O pega una URL (https://...)"></div>' +
+                    '<div class="col-6 d-flex align-items-end"><div class="form-check"><input type="checkbox" class="form-check-input" id="destacado" value="1"><label class="form-check-label fw-semibold" for="destacado">Mostrar en p\u00e1gina principal</label></div></div>' +
+                '</div>' +
+                '<div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-success">' + (isEdit ? 'Actualizar' : 'Guardar') + '</button><button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button></div>' +
+            '</form>';
+            openCrudModal(isEdit ? 'Editar Pel\u00edcula #' + data.id_pelicula : 'Nueva Pel\u00edcula', formHtml, function() {
+                guardarPelicula();
+            });
+            if (isEdit) {
                 document.getElementById('titulo').value = data.titulo || '';
                 document.getElementById('duracion_minutos').value = data.duracion_minutos || '';
                 document.getElementById('genero').value = data.genero || '';
                 document.getElementById('sinopsis').value = data.sinopsis || '';
                 document.getElementById('imagen_url').value = data.imagen_url || '';
                 document.getElementById('destacado').checked = data.destacado == 1;
-            } else {
-                editandoId = null;
-                document.getElementById('form-titulo').textContent = 'Nueva Pel\u00EDcula';
-                document.getElementById('btn-guardar').textContent = 'Guardar';
-                document.getElementById('titulo').value = '';
-                document.getElementById('duracion_minutos').value = '';
-                document.getElementById('genero').value = '';
-                document.getElementById('sinopsis').value = '';
-                document.getElementById('imagen_url').value = '';
-                document.getElementById('destacado').checked = false;
             }
         }
 
         function ocultarFormulario() {
-            document.getElementById('formulario-pelicula').classList.add('d-none');
-            editandoId = null;
+            closeCrudModal();
         }
 
         function cargarTabla() {
@@ -90,8 +90,7 @@ let editandoId = null;
             });
         }
 
-        window.guardarPelicula = function(event) {
-            event.preventDefault();
+        window.guardarPelicula = function() {
             const fd = new FormData();
             fd.append('action', editandoId ? 'update' : 'insertar');
             if (editandoId) fd.append('id', editandoId);

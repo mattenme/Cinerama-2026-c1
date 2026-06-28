@@ -60,6 +60,10 @@ public class ButacaController extends HttpServlet {
                     req.getParameter("estado")
                 );
             } else if ("delete".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = butacaDao.delete(Integer.parseInt(req.getParameter("id")));
             }
         } catch (NumberFormatException e) {

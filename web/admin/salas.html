@@ -21,36 +21,6 @@
                     <button class="btn btn-warning fw-bold" onclick="mostrarFormulario()">+ Nueva Sala</button>
                 </div>
 
-                <div id="formulario-sala" class="card p-4 mb-4 bg-light border-0 d-none">
-                    <h3 class="mb-3" id="form-titulo">Nueva Sala</h3>
-                    <form onsubmit="guardarSala(event)">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label for="nombre" class="form-label fw-semibold">Nombre de Sala:</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="tipo" class="form-label fw-semibold">Tipo de Sala:</label>
-                                <select class="form-select" id="tipo" name="tipo" required>
-                                    <option value="">Seleccionar tipo</option>
-                                    <option value="2d">2D</option>
-                                    <option value="3d">3D</option>
-                                    <option value="imax">IMAX</option>
-                                    <option value="vip">VIP</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="capacidad_total" class="form-label fw-semibold">Capacidad:</label>
-                                <input type="number" class="form-control" id="capacidad_total" name="capacidad_total" min="20" max="500" required>
-                            </div>
-                        </div>
-                        <div class="mt-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="btn-guardar">Guardar</button>
-                            <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="Buscar en esta lista..." id="buscador" onkeyup="filtrarTabla()">
                 </div>

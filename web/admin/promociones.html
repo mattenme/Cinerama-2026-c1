@@ -21,38 +21,6 @@
                     <button class="btn btn-warning fw-bold" onclick="mostrarFormulario()">+ Nueva Promoción</button>
                 </div>
 
-                <div id="formulario" class="card p-4 mb-4 bg-light border-0 d-none">
-                    <h3 class="mb-3" id="form-titulo">Nueva Promoción</h3>
-                    <form onsubmit="guardar(event)">
-                        <input type="hidden" id="edit-id" value="">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Código:</label>
-                                <input type="text" class="form-control" id="codigo" placeholder="Ej: CINERAMA20" required style="text-transform:uppercase;">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Descuento (%):</label>
-                                <input type="number" class="form-control" id="descuento" min="1" max="100" required>
-                            </div>
-                            <div class="col-md-8">
-                                <label class="form-label fw-semibold">Descripción:</label>
-                                <input type="text" class="form-control" id="descripcion" placeholder="Ej: Descuento especial">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Activo:</label>
-                                <select class="form-select" id="activo">
-                                    <option value="1">Sí</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="btn-guardar">Guardar</button>
-                            <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="Buscar en esta lista..." id="buscador" onkeyup="filtrarTabla()">
                 </div>

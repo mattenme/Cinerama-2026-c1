@@ -1,6 +1,6 @@
 var selectedMethod = null;
 var _seats = '', _total = '0', _food = '', _grandTotal = '0', _idFuncion = '', _idButaca = '';
-var _descuento = 0, _codigoPromo = '';
+var _descuento = 0;
 
 (function() {
     var urlParams = new URLSearchParams(window.location.search);
@@ -57,7 +57,6 @@ function aplicarPromo() {
     .then(function(data) {
         if (data.success) {
             _descuento = data.descuento;
-            _codigoPromo = codigo;
             var original = parseFloat(_grandTotal);
             var finalPrecio = original - (original * _descuento / 100);
             var grandEl = document.getElementById('summary-grand-total');
@@ -136,8 +135,6 @@ function procesarPago() {
     var metodoMap = { 'visa': 'Tarjeta Visa', 'mastercard': 'Tarjeta Mastercard', 'yape': 'Yape', 'plin': 'Plin', 'efectivo': 'Efectivo' };
     params.append('metodo_pago', metodoMap[selectedMethod] || selectedMethod);
     params.append('estado', 'completada');
-    if (_codigoPromo) params.append('codigo_promo', _codigoPromo);
-
     if (_food) {
         try {
             var items = JSON.parse(_food);

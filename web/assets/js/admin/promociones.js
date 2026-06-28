@@ -23,27 +23,28 @@ let editandoId = null;
         });
 
         function mostrarFormulario(data) {
-            document.getElementById('formulario').classList.remove('d-none');
+            editandoId = data ? data.id_promocion : null;
+            var formHtml = '<form id="form-promo">' +
+                '<div class="row g-3">' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">C\u00f3digo:</label><input type="text" class="form-control" id="codigo" placeholder="Ej: CINERAMA20" required style="text-transform:uppercase;"></div>' +
+                    '<div class="col-md-6"><label class="form-label fw-semibold">Descuento (%):</label><input type="number" class="form-control" id="descuento" min="1" max="100" required></div>' +
+                    '<div class="col-md-8"><label class="form-label fw-semibold">Descripci\u00f3n:</label><input type="text" class="form-control" id="descripcion" placeholder="Ej: Descuento especial"></div>' +
+                    '<div class="col-md-4"><label class="form-label fw-semibold">Activo:</label><select class="form-select" id="activo"><option value="1">S\u00ed</option><option value="0">No</option></select></div>' +
+                '</div>' +
+                '<div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-success">' + (editandoId ? 'Actualizar' : 'Guardar') + '</button><button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button></div>' +
+            '</form>';
+            openCrudModal(editandoId ? 'Editar Promoci\u00f3n #' + data.id_promocion : 'Nueva Promoci\u00f3n', formHtml, function() {
+                guardar();
+            });
             if (data) {
-                editandoId = data.id_promocion;
-                document.getElementById('form-titulo').textContent = 'Editar Promoci\u00F3n #' + data.id_promocion;
-                document.getElementById('btn-guardar').textContent = 'Actualizar';
                 document.getElementById('codigo').value = data.codigo || '';
                 document.getElementById('descripcion').value = data.descripcion || '';
                 document.getElementById('descuento').value = data.descuento || '';
                 document.getElementById('activo').value = data.activo;
-            } else {
-                editandoId = null;
-                document.getElementById('form-titulo').textContent = 'Nueva Promoci\u00F3n';
-                document.getElementById('btn-guardar').textContent = 'Guardar';
-                document.getElementById('codigo').value = '';
-                document.getElementById('descripcion').value = '';
-                document.getElementById('descuento').value = '';
-                document.getElementById('activo').value = '1';
             }
         }
 
-        function ocultarFormulario() { document.getElementById('formulario').classList.add('d-none'); editandoId = null; }
+        function ocultarFormulario() { closeCrudModal(); }
 
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-promociones tbody');
@@ -80,8 +81,7 @@ let editandoId = null;
             });
         }
 
-        window.guardar = function(e) {
-            e.preventDefault();
+        window.guardar = function() {
             const datos = {
                 codigo: document.getElementById('codigo').value.toUpperCase(),
                 descripcion: document.getElementById('descripcion').value,

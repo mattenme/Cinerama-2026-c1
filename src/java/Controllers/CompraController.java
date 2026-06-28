@@ -118,6 +118,10 @@ public class CompraController extends HttpServlet {
             allOk = lastId > 0;
             resp.getWriter().write("{\"success\":" + allOk + ", \"id\":" + lastId + "}");
         } else if ("delete".equals(action)) {
+            if (!utils.AuthUtil.esAdmin(req)) {
+                resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                return;
+            }
             String idStr = req.getParameter("id");
             if (idStr == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID requerido\"}"); return; }
             boolean ok = compraDao.delete(Integer.parseInt(idStr));
