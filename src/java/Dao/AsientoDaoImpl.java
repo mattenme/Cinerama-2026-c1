@@ -13,7 +13,7 @@ public class AsientoDaoImpl implements IAsiento {
     @Override
     public List<Asiento> lista() {
         List<Asiento> lista = new ArrayList<>();
-        String sql = "SELECT a.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
+        String sql = "SELECT a.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad, s.activo as sala_activo "
                    + "FROM Asiento a JOIN Sala s ON a.id_sala = s.id_sala ORDER BY a.id_sala, a.fila, a.numero";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql);
@@ -28,7 +28,7 @@ public class AsientoDaoImpl implements IAsiento {
     @Override
     public List<Asiento> listarPorSala(int idSala) {
         List<Asiento> lista = new ArrayList<>();
-        String sql = "SELECT a.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
+        String sql = "SELECT a.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad, s.activo as sala_activo "
                    + "FROM Asiento a JOIN Sala s ON a.id_sala = s.id_sala WHERE a.id_sala=? ORDER BY a.fila, a.numero";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
@@ -78,7 +78,7 @@ public class AsientoDaoImpl implements IAsiento {
     @Override
     public Asiento searchById(int id) {
         Asiento a = null;
-        String sql = "SELECT a.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
+        String sql = "SELECT a.*, s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad, s.activo as sala_activo "
                    + "FROM Asiento a JOIN Sala s ON a.id_sala = s.id_sala WHERE a.id_asiento=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
@@ -157,7 +157,7 @@ public class AsientoDaoImpl implements IAsiento {
             rs.getString("sala_nombre"),
             rs.getString("sala_tipo"),
             rs.getInt("sala_capacidad"),
-            1
+            rs.getInt("sala_activo")
         );
         return new Asiento(
             rs.getInt("id_asiento"),

@@ -2,6 +2,7 @@ let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -54,10 +55,10 @@ let editandoId = null;
                 var sel = document.getElementById('id_sala');
                 if (sel) {
                     var val = sel.value;
-                    sel.innerHTML = '<option value="">Ninguna</option>' + salas.map(s => '<option value="' + s.id_sala + '">' + s.nombre + '</option>').join('');
+                    sel.innerHTML = '<option value="">Ninguna</option>' + salas.map(s => '<option value="' + escapeHtml(s.id_sala) + '">' + escapeHtml(s.nombre) + '</option>').join('');
                     sel.value = val;
                 }
-            });
+            }).catch(function(e) { console.error(e); });
         }
 
         var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
@@ -88,15 +89,15 @@ let editandoId = null;
                     const fecha = i.fecha_reporte ? new Date(i.fecha_reporte) : null;
                     const fechaStr = fecha ? fecha.toLocaleString('es-PE') : '-';
                     return `<tr>
-                        <td>${i.id_incidencia}</td>
-                        <td>${i.tipo || '-'}</td>
-                        <td>${i.sala ? i.sala.nombre : '-'}</td>
-                        <td>${i.cliente ? i.cliente.nombre || '#' + i.cliente.id_cliente : '-'}</td>
-                        <td>${fechaStr}</td>
-                        <td><span class="badge ${badge[i.estado] || 'bg-secondary'}">${i.estado || '-'}</span></td>
+                        <td>${escapeHtml(i.id_incidencia)}</td>
+                        <td>${escapeHtml(i.tipo || '-')}</td>
+                        <td>${escapeHtml(i.sala ? i.sala.nombre : '-')}</td>
+                        <td>${escapeHtml(i.cliente ? i.cliente.nombre || '#' + i.cliente.id_cliente : '-')}</td>
+                        <td>${escapeHtml(fechaStr)}</td>
+                        <td><span class="badge ${badge[i.estado] || 'bg-secondary'}">${escapeHtml(i.estado || '-')}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${i.id_incidencia})">${iconSVG('edit')}</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${i.id_incidencia})">${iconSVG('trash')}</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${escapeHtml(i.id_incidencia)})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${escapeHtml(i.id_incidencia)})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -137,11 +138,11 @@ let editandoId = null;
         };
 
         window.editar = function(id) {
-            Api.incidencia.buscar(id).then(function(i) { if (i) mostrarFormulario(i); });
+            Api.incidencia.buscar(id).then(function(i) { if (i) mostrarFormulario(i); }).catch(function(e) { console.error(e); });
         };
 
         window.eliminar = function(id) {
             showConfirm('\u00BFEliminar incidencia #' + id + '?', function() {
-                Api.incidencia.eliminar(id).then(r => { if (r.success) cargarTabla(); });
+                Api.incidencia.eliminar(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
             });
         };

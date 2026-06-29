@@ -33,7 +33,7 @@ public class ProductoDaoImpl implements IProducto {
             st.setDouble(3, prod.getPrecio());
             st.setString(4, prod.getImagen_url());
             st.setString(5, prod.getCategoria());
-            st.setInt(6, prod.isActivo() ? 1 : 0);
+            st.setInt(6, prod.getActivo());
             st.executeUpdate();
             try (ResultSet rs = st.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
@@ -54,7 +54,7 @@ public class ProductoDaoImpl implements IProducto {
             st.setDouble(3, prod.getPrecio());
             st.setString(4, prod.getImagen_url());
             st.setString(5, prod.getCategoria());
-            st.setInt(6, prod.isActivo() ? 1 : 0);
+            st.setInt(6, prod.getActivo());
             st.setInt(7, prod.getId_producto());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -140,7 +140,7 @@ public class ProductoDaoImpl implements IProducto {
             rs.getDouble("precio"),
             rs.getString("imagen_url"),
             rs.getString("categoria"),
-            rs.getInt("activo") == 1
+            rs.getInt("activo")
         );
     }
 }

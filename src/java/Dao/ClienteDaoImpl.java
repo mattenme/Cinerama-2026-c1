@@ -50,17 +50,23 @@ public class ClienteDaoImpl implements ICliente {
 
     @Override
     public boolean update(Cliente cli) {
-        String sql = "UPDATE Cliente SET dni=?, nombre=?, email=?, telefono=?, contrasena=?, verificado=?, codigo_verificacion=? WHERE id_cliente=?";
+        String sql = "UPDATE Cliente SET dni=?, nombre=?, email=?, telefono=?, contrasena=?, rol=?, activo=?, verificado=?, codigo_verificacion=? WHERE id_cliente=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setString(1, cli.getDni());
             st.setString(2, cli.getNombre());
             st.setString(3, cli.getEmail());
             st.setString(4, cli.getTelefono());
-            st.setString(5, cli.getContrasena());
-            st.setInt(6, cli.getVerificado());
-            st.setString(7, cli.getCodigoVerificacion());
-            st.setInt(8, cli.getId_cliente());
+            String pass = cli.getContrasena();
+            if (pass != null && !pass.trim().isEmpty()) {
+                pass = BCrypt.hashpw(pass, BCrypt.gensalt());
+            }
+            st.setString(5, pass);
+            st.setString(6, cli.getRol());
+            st.setInt(7, cli.getActivo());
+            st.setInt(8, cli.getVerificado());
+            st.setString(9, cli.getCodigoVerificacion());
+            st.setInt(10, cli.getId_cliente());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

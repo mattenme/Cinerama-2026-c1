@@ -44,10 +44,10 @@ function renderCarousel(lista) {
         var active = i === 0 ? ' active' : '';
         var imgSrc = p.imagen_url || '';
         slidesHtml += '<div class="carousel-item' + active + '">' +
-            (imgSrc ? '<img src="' + imgSrc + '" class="d-block w-100" alt="' + p.titulo + '" style="max-height:500px;object-fit:cover;">' : '<div class="d-flex align-items-center justify-content-center" style="height:500px;background:linear-gradient(135deg,#1a1a2e,#16213e);"><h2 class="text-warning fw-bold">' + p.titulo + '</h2></div>') +
+            (imgSrc ? '<img src="' + escapeHtml(imgSrc) + '" class="d-block w-100" alt="' + escapeHtml(p.titulo) + '" style="max-height:500px;object-fit:cover;">' : '<div class="d-flex align-items-center justify-content-center" style="height:500px;background:linear-gradient(135deg,#1a1a2e,#16213e);"><h2 class="text-warning fw-bold">' + escapeHtml(p.titulo) + '</h2></div>') +
             '<div class="carousel-caption d-none d-md-block" style="background:rgba(0,0,0,0.5);border-radius:12px;padding:16px;">' +
-                '<h3 class="fw-bold">' + p.titulo + '</h3>' +
-                '<p>' + (p.genero || '') + ' &middot; ' + p.duracion_minutos + ' min</p>' +
+                '<h3 class="fw-bold">' + escapeHtml(p.titulo) + '</h3>' +
+                '<p>' + escapeHtml(p.genero || '') + ' &middot; ' + escapeHtml(String(p.duracion_minutos)) + ' min</p>' +
                 '<a href="cartelera.html" class="btn btn-warning fw-bold btn-sm">Comprar Entradas</a>' +
             '</div></div>';
         indHtml += '<button type="button" data-bs-target="#carouselPrincipal" data-bs-slide-to="' + i + '"' + (i === 0 ? ' class="active"' : '') + '></button>';
@@ -66,10 +66,10 @@ function renderGrid(lista) {
         var imgSrc = p.imagen_url || '';
         return '<div class="col-md-6 col-lg-4">' +
             '<div class="card h-100 border-0 shadow-sm movie-card-custom">' +
-                (imgSrc ? '<img src="' + imgSrc + '" class="card-img-top" alt="' + p.titulo + '" style="height:300px;object-fit:cover;">' : '<div class="d-flex align-items-center justify-content-center" style="height:300px;background:linear-gradient(135deg,#1a1a2e,#16213e);"><h4 class="text-warning fw-bold">' + p.titulo + '</h4></div>') +
+                (imgSrc ? '<img src="' + escapeHtml(imgSrc) + '" class="card-img-top" alt="' + escapeHtml(p.titulo) + '" style="height:300px;object-fit:cover;">' : '<div class="d-flex align-items-center justify-content-center" style="height:300px;background:linear-gradient(135deg,#1a1a2e,#16213e);"><h4 class="text-warning fw-bold">' + escapeHtml(p.titulo) + '</h4></div>') +
                 '<div class="card-body">' +
-                    '<h3 class="card-title h4">' + p.titulo + '</h3>' +
-                    '<p class="card-text text-muted">' + (p.genero || '') + ' &middot; ' + p.duracion_minutos + ' min</p>' +
+                    '<h3 class="card-title h4">' + escapeHtml(p.titulo) + '</h3>' +
+                    '<p class="card-text text-muted">' + escapeHtml(p.genero || '') + ' &middot; ' + escapeHtml(String(p.duracion_minutos)) + ' min</p>' +
                     '<a href="cartelera.html" class="btn btn-warning w-100 fw-bold">Comprar Entradas</a>' +
                 '</div>' +
             '</div></div>';

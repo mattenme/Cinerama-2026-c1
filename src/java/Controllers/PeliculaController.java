@@ -66,6 +66,10 @@ public class PeliculaController extends HttpServlet {
             boolean ok = false;
 
             if ("insertar".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Pelicula p = new Pelicula();
                 p.setTitulo(req.getParameter("titulo"));
                 p.setDuracion_minutos(Integer.parseInt(req.getParameter("duracion_minutos")));
@@ -78,6 +82,10 @@ public class PeliculaController extends HttpServlet {
                 p.setActivo(1);
                 ok = peliculaDao.insertar(p);
             } else if ("update".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Pelicula p = peliculaDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (p != null) {
                     p.setTitulo(req.getParameter("titulo"));
@@ -104,8 +112,16 @@ public class PeliculaController extends HttpServlet {
                     if (ok) borrarImagenAnterior(p.getImagen_url(), req);
                 }
             } else if ("toggleDestacado".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = peliculaDao.toggleDestacado(Integer.parseInt(req.getParameter("id")));
             } else if ("toggleActivo".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = peliculaDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             }
             if (!resp.isCommitted()) {
@@ -133,8 +149,8 @@ public class PeliculaController extends HttpServlet {
         String dir = rootPath() + "assets" + File.separator + "img" + File.separator + "peliculas";
         new File(dir).mkdirs();
         String uniqueName = System.currentTimeMillis() + "_" + fileName;
-        String ext = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase() : ".jpg";
-        String format = ext.equals(".png") ? "png" : "jpg";
+        String ext = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase() : "jpg";
+        String format = ext.equals("jpeg") ? "jpg" : (ext.equals("png") || ext.equals("gif") || ext.equals("bmp") || ext.equals("wbmp") ? ext : "jpg");
         File outFile = new File(dir + File.separator + uniqueName);
         BufferedImage original = ImageIO.read(filePart.getInputStream());
         if (original != null) {

@@ -66,6 +66,10 @@ public class IncidenciaController extends HttpServlet {
                 i.setEstado(req.getParameter("estado"));
                 ok = incDao.insertar(i);
             } else if ("update".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Incidencia i = incDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (i != null) {
                     if (req.getParameter("tipo") != null) i.setTipo(req.getParameter("tipo"));

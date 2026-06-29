@@ -36,7 +36,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId')) { window.location.href = 'login.html'; return; }
-            fetch('includes/header.html').then(r => r.text()).then(d => { document.getElementById('header-placeholder').innerHTML = d; }).catch(()=>{});
+            fetch('includes/header.html').then(r => r.text()).then(d => { document.getElementById('header-placeholder').innerHTML = d; setActiveNavLink(); }).catch(()=>{});
             if (localStorage.getItem('clienteRol') === 'admin') {
                 document.getElementById('perfil-layout').className = 'admin-layout';
                 document.getElementById('perfil-content').className = 'admin-content';

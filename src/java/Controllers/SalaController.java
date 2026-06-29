@@ -42,6 +42,10 @@ public class SalaController extends HttpServlet {
         try {
             String action = req.getParameter("action");
             if ("insertar".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 String nombre = req.getParameter("nombre");
                 if (salaDao.existeNombre(nombre)) {
                     resp.getWriter().write("{\"success\":false,\"mensaje\":\"Ya existe una sala con ese nombre\"}");
@@ -58,6 +62,10 @@ public class SalaController extends HttpServlet {
                     ok = true;
                 }
             } else if ("update".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Sala s = salaDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (s != null) {
                     s.setNombre(req.getParameter("nombre"));
@@ -66,6 +74,10 @@ public class SalaController extends HttpServlet {
                     ok = salaDao.update(s);
                 }
             } else if ("toggleActivo".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = salaDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {

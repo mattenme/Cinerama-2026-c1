@@ -69,8 +69,13 @@ public class PromocionController extends HttpServlet {
                 resp.getWriter().write("{\"success\":false,\"mensaje\":\"Acci\u00f3n no especificada\"}");
                 return;
             }
+            boolean ok = false;
             switch (action) {
                 case "insertar": {
+                    if (!utils.AuthUtil.esAdmin(req)) {
+                        resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                        return;
+                    }
                     String codigo = req.getParameter("codigo");
                     if (codigo == null || codigo.isEmpty()) {
                         resp.getWriter().write("{\"success\":false,\"mensaje\":\"C\u00f3digo requerido\"}");
@@ -82,11 +87,14 @@ public class PromocionController extends HttpServlet {
                     String desc = req.getParameter("descuento");
                     p.setDescuento(desc != null ? Integer.parseInt(desc) : 0);
                     p.setActivo(1);
-                    promoDao.insertar(p);
-                    resp.getWriter().write("{\"success\":true,\"mensaje\":\"Promoci\u00f3n guardada\"}");
+                    ok = promoDao.insertar(p) > 0;
                     break;
                 }
                 case "update": {
+                    if (!utils.AuthUtil.esAdmin(req)) {
+                        resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                        return;
+                    }
                     String idStr = req.getParameter("id");
                     if (idStr == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID requerido\"}"); return; }
                     int id = Integer.parseInt(idStr);
@@ -102,15 +110,17 @@ public class PromocionController extends HttpServlet {
                     if (d != null) p.setDescuento(Integer.parseInt(d));
                     String act = req.getParameter("activo");
                     if (act != null) p.setActivo(Integer.parseInt(act));
-                    promoDao.actualizar(p);
-                    resp.getWriter().write("{\"success\":true,\"mensaje\":\"Promoci\u00f3n actualizada\"}");
+                    ok = promoDao.actualizar(p) > 0;
                     break;
                 }
                 case "toggleActivo": {
+                    if (!utils.AuthUtil.esAdmin(req)) {
+                        resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                        return;
+                    }
                     String idStr2 = req.getParameter("id");
                     if (idStr2 == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID requerido\"}"); return; }
-                    promoDao.toggleActivo(Integer.parseInt(idStr2));
-                    resp.getWriter().write("{\"success\":true,\"mensaje\":\"Estado cambiado\"}");
+                    ok = promoDao.toggleActivo(Integer.parseInt(idStr2));
                     break;
                 }
                 case "delete": {
@@ -120,18 +130,24 @@ public class PromocionController extends HttpServlet {
                     }
                     String idStr = req.getParameter("id");
                     if (idStr == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID requerido\"}"); return; }
-                    promoDao.eliminar(Integer.parseInt(idStr));
-                    resp.getWriter().write("{\"success\":true,\"mensaje\":\"Eliminada\"}");
+                    ok = promoDao.eliminar(Integer.parseInt(idStr)) > 0;
                     break;
                 }
                 default:
                     resp.getWriter().write("{\"success\":false,\"mensaje\":\"Acci\u00f3n no v\u00e1lida\"}");
+                    return;
             }
+            resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "\"}");
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o descuento inv\u00e1lido\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o descuento inv\u00e1lido\"}");
+            return;
         } catch (Exception e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error: " + e.getMessage() + "\"}");
+            Map<String, Object> err = new HashMap<>();
+            err.put("success", false);
+            err.put("mensaje", e.getMessage() != null ? e.getMessage() : "Error interno");
+            if (!resp.isCommitted()) resp.getWriter().write(gson.toJson(err));
             e.printStackTrace();
+            return;
         }
     }
 }

@@ -2,6 +2,7 @@ let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -22,9 +23,9 @@ let editandoId = null;
             cargarTabla();
             var params = new URLSearchParams(window.location.search);
             var editar = params.get('editar');
-            if (editar) {
+        if (editar) {
                 setTimeout(function() {
-                    Api.sala.buscar(editar).then(function(s) { if (s) mostrarFormulario(s); });
+                    Api.sala.buscar(editar).then(function(s) { if (s) mostrarFormulario(s); }).catch(function(e) { console.error(e); });
                 }, 500);
             }
         });
@@ -81,15 +82,15 @@ let editandoId = null;
                         const badgeTipo = { '2d': 'secondary', '3d': 'info', imax: 'dark', vip: 'warning' };
                         const badge = badgeTipo[s.tipo] || 'secondary';
                         return `<tr>
-                            <td>${s.id_sala}</td>
-                            <td><strong>${s.nombre}</strong></td>
-                            <td>${s.capacidad_total}</td>
-                            <td><span class="badge bg-${badge}">${(s.tipo || '-').toUpperCase()}</span></td>
-                            <td><span class="badge ${s.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoSala(${s.id_sala})">${s.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
+                            <td>${escapeHtml(s.id_sala)}</td>
+                            <td><strong>${escapeHtml(s.nombre)}</strong></td>
+                            <td>${escapeHtml(s.capacidad_total)}</td>
+                            <td><span class="badge bg-${badge}">${escapeHtml((s.tipo || '-').toUpperCase())}</span></td>
+                            <td><span class="badge ${s.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoSala(${escapeHtml(s.id_sala)})">${s.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary" onclick="editarSala(${s.id_sala})">${iconSVG('edit')}</button>
-                                <a href="horarios.html?idSala=${s.id_sala}" class="btn btn-sm btn-outline-info">${iconSVG('clock')}</a>
-                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarSala(${s.id_sala})">${iconSVG('trash')}</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editarSala(${escapeHtml(s.id_sala)})">${iconSVG('edit')}</button>
+                                <a href="horarios.html?idSala=${escapeHtml(s.id_sala)}" class="btn btn-sm btn-outline-info">${iconSVG('clock')}</a>
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarSala(${escapeHtml(s.id_sala)})">${iconSVG('trash')}</button>
                             </td>
                         </tr>`;
                     }).join('');
@@ -201,7 +202,7 @@ let editandoId = null;
         };
 
         window.toggleActivoSala = function(id) {
-            Api.sala.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+            Api.sala.toggleActivo(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
         };
 
         window.eliminarSala = function(id) {
@@ -216,5 +217,5 @@ let editandoId = null;
         window.editarSala = function(id) {
             Api.sala.buscar(id).then(s => {
                 if (s) mostrarFormulario(s);
-            });
+            }).catch(function(e) { console.error(e); });
         };

@@ -48,6 +48,10 @@ public class FuncionController extends HttpServlet {
         try {
             String action = req.getParameter("action");
             if ("insertar".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Funcion f = new Funcion();
                 Pelicula p = new Pelicula();
                 p.setId_pelicula(Integer.parseInt(req.getParameter("id_pelicula")));
@@ -60,6 +64,10 @@ public class FuncionController extends HttpServlet {
                 f.setActivo(1);
                 ok = funcionDao.insertar(f);
             } else if ("update".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Funcion f = funcionDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (f != null) {
                     Pelicula p = new Pelicula();
@@ -73,6 +81,10 @@ public class FuncionController extends HttpServlet {
                     ok = funcionDao.update(f);
                 }
             } else if ("toggleActivo".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = funcionDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {
@@ -86,10 +98,10 @@ public class FuncionController extends HttpServlet {
             return;
         } catch (Exception e) {
             e.printStackTrace();
-            error = gson.toJson(e.getMessage() != null ? e.getMessage() : "Error desconocido");
+            error = e.getMessage() != null ? e.getMessage() : "Error desconocido";
         }
         if (!resp.isCommitted()) {
-            resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":" + error + "}");
+            resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":" + gson.toJson(error) + "}");
         }
     }
 }

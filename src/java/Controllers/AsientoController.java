@@ -57,6 +57,10 @@ public class AsientoController extends HttpServlet {
         try {
             String action = req.getParameter("action");
             if ("insertar".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Asiento a = new Asiento();
                 Sala s = new Sala();
                 s.setId_sala(Integer.parseInt(req.getParameter("id_sala")));
@@ -71,7 +75,11 @@ public class AsientoController extends HttpServlet {
                     req.getParameter("estado")
                 );
             } else if ("delete".equals(action)) {
-                ok = asientoDao.delete(Integer.parseInt(req.getParameter("id")));
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    ok = false;
+                } else {
+                    ok = asientoDao.delete(Integer.parseInt(req.getParameter("id")));
+                }
             }
         } catch (NumberFormatException e) {
             if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");

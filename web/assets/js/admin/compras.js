@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+    fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
     fetch('../includes/header.html')
         .then(r => r.text())
         .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -88,17 +89,17 @@ function cargarTabla() {
             }
             const asientosStr = g.filas.join(', ') || '-';
             return `<tr>
-                <td>${g.id_compra}</td>
-                <td>${g.cliente ? g.cliente.nombre || '#' + g.cliente.id_cliente : '-'}</td>
-                <td>${g.funcion ? '#' + g.funcion.id_funcion : '-'}</td>
-                <td>                ${asientosStr}</td>
-                <td><strong>S/ ${g.precio ? g.precio.toFixed(2) : '0.00'}</strong></td>
-                <td><small>${prodStr || '-'}</small></td>
-                <td><span class="badge ${badgeMetodo[g.metodo_pago] || 'bg-secondary'}">${g.metodo_pago || '-'}</span></td>
-                <td><span class="badge ${badgeEstado[g.estado] || 'bg-secondary'}">${g.estado || '-'}</span></td>
-                <td>${fechaStr}</td>
-                <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${g.codigo_qr || ''}">${g.codigo_qr ? g.codigo_qr.substring(0, 8) + '...' : '-'}</td>
-                <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGrupo('${qr}')">${iconSVG('trash')}</button></td>
+                <td>${escapeHtml(g.id_compra)}</td>
+                <td>${escapeHtml(g.cliente ? g.cliente.nombre || '#' + g.cliente.id_cliente : '-')}</td>
+                <td>${escapeHtml(g.funcion ? '#' + g.funcion.id_funcion : '-')}</td>
+                <td>                ${escapeHtml(asientosStr)}</td>
+                <td><strong>S/ ${escapeHtml(g.precio ? g.precio.toFixed(2) : '0.00')}</strong></td>
+                <td><small>${escapeHtml(prodStr || '-')}</small></td>
+                <td><span class="badge ${badgeMetodo[g.metodo_pago] || 'bg-secondary'}">${escapeHtml(g.metodo_pago || '-')}</span></td>
+                <td><span class="badge ${badgeEstado[g.estado] || 'bg-secondary'}">${escapeHtml(g.estado || '-')}</span></td>
+                <td>${escapeHtml(fechaStr)}</td>
+                <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(g.codigo_qr || '')}">${escapeHtml(g.codigo_qr ? g.codigo_qr.substring(0, 8) + '...' : '-')}</td>
+                <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGrupo('${escapeHtml(qr)}')">${iconSVG('trash')}</button></td>
             </tr>`;
         }).join('');
         actualizarPaginacion();
@@ -135,8 +136,8 @@ window.eliminarGrupo = function(qr) {
                 Api.compra.eliminar(id).then(function() {
                     pendientes--;
                     if (pendientes === 0) cargarTabla();
-                });
+                }).catch(function() { showError('Error de conexi\u00F3n'); });
             });
-        });
+        }).catch(function(e) { console.error(e); });
     });
 };

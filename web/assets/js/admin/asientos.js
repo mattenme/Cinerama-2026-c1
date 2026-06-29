@@ -2,6 +2,7 @@ let asientosActuales = [];
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -22,8 +23,8 @@ let asientosActuales = [];
             Api.sala.listar().then(salas => {
                 const sel = document.getElementById('sala-select');
                 sel.innerHTML = '<option value="">Seleccionar sala</option>' +
-                    salas.map(s => `<option value="${s.id_sala}">${s.nombre} (${s.tipo}) - ${s.capacidad_total} asientos</option>`).join('');
-            });
+                    salas.map(s => `<option value="${escapeHtml(s.id_sala)}">${escapeHtml(s.nombre)} (${escapeHtml(s.tipo)}) - ${escapeHtml(s.capacidad_total)} asientos</option>`).join('');
+            }).catch(function(e) { console.error(e); });
         });
 
         function cargarAsientos() {
@@ -36,7 +37,7 @@ let asientosActuales = [];
                 .then(function(data) {
                     asientosActuales = data;
                     renderizar(data);
-                });
+                }).catch(function(e) { console.error(e); });
         }
 
         function renderizar(lista) {
@@ -56,7 +57,7 @@ let asientosActuales = [];
                 grupos[f].sort((a, b) => a.numero - b.numero);
                 const asientos = grupos[f].map(b => {
                     const estado = b.estado ? b.estado.toLowerCase() : 'disponible';
-                    return `<div class="seat-admin ${estado}" data-id="${b.id_asiento}" data-estado="${b.estado}" data-fila="${b.fila}" data-numero="${b.numero}" onclick="cambiarEstado(this)">${b.fila}${b.numero}</div>`;
+                    return `<div class="seat-admin ${estado}" data-id="${escapeHtml(b.id_asiento)}" data-estado="${escapeHtml(b.estado)}" data-fila="${escapeHtml(b.fila)}" data-numero="${escapeHtml(b.numero)}" onclick="cambiarEstado(this)">${escapeHtml(b.fila)}${escapeHtml(b.numero)}</div>`;
                 }).join('');
                 html += `<div class="mb-1"><span class="fw-bold me-2" style="min-width:20px;display:inline-block;">${f}</span>${asientos}</div>`;
             });
@@ -129,7 +130,7 @@ let asientosActuales = [];
                             el.dataset.estado = nuevo;
                             el.className = 'seat-admin ' + nuevo.toLowerCase();
                         }
-                    });
+                    }).catch(function(e) { console.error(e); });
                 container.remove();
             };
             btnRow.appendChild(btnOk);
@@ -170,13 +171,13 @@ let asientosActuales = [];
                     Api.sala.listar().then(function(salas) {
                         var sel = document.getElementById('sala-select');
                         sel.innerHTML = '<option value="">Seleccionar sala</option>' +
-                            salas.map(function(s) { return '<option value="' + s.id_sala + '">' + s.nombre + ' (' + s.tipo + ') - ' + s.capacidad_total + ' asientos</option>'; }).join('');
+                            salas.map(function(s) { return '<option value="' + escapeHtml(s.id_sala) + '">' + escapeHtml(s.nombre) + ' (' + escapeHtml(s.tipo) + ') - ' + escapeHtml(s.capacidad_total) + ' asientos</option>'; }).join('');
                         sel.value = '';
                         document.getElementById('seat-container').innerHTML = '<div class="text-center text-muted py-5">Selecciona una sala para ver sus asientos</div>';
                         document.getElementById('btn-editar-sala').style.display = 'none';
                         document.getElementById('btn-eliminar-sala').style.display = 'none';
                         showSuccess('Sala y asientos eliminados');
-                    });
+                    }).catch(function(e) { console.error(e); });
                 } else showError(r.mensaje || 'Error al eliminar la sala');
             }).catch(function(e) { showError('Error de conexi\u00F3n: ' + e.message); });
         }
@@ -238,6 +239,6 @@ let asientosActuales = [];
                         });
                         if (pendientes === 0 && creadas === 0) { showInfo('Ya existen todos los asientos posibles'); cargarAsientos(); }
                         document.getElementById('seat-container').innerHTML = '<div class="text-center py-5">Generando asientos...</div>';
-                    });
+                    }).catch(function(e) { console.error(e); });
             });
         }

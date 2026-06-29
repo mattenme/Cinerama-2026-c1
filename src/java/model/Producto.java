@@ -7,12 +7,12 @@ public class Producto {
     private double precio;
     private String imagen_url;
     private String categoria;
-    private boolean activo;
+    private int activo;
 
     public Producto() {}
 
     public Producto(int id_producto, String nombre, String descripcion,
-            double precio, String imagen_url, String categoria, boolean activo) {
+            double precio, String imagen_url, String categoria, int activo) {
         this.id_producto = id_producto;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -40,6 +40,6 @@ public class Producto {
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
 
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+    public int getActivo() { return activo; }
+    public void setActivo(int activo) { this.activo = activo; }
 }

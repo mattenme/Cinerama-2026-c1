@@ -1,10 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     fetch('includes/header.html')
         .then(r => r.text())
-        .then(d => { document.getElementById('header-placeholder').innerHTML = d; setActiveNavLink(); });
+        .then(d => { document.getElementById('header-placeholder').innerHTML = d; setActiveNavLink(); })
+        .catch(function(e) { console.error(e); });
     fetch('includes/footer.html')
         .then(r => r.text())
-        .then(d => { document.getElementById('footer-placeholder').innerHTML = d; });
+        .then(d => { document.getElementById('footer-placeholder').innerHTML = d; })
+        .catch(function(e) { console.error(e); });
 
     fetch(API_URL + '/ProductoController?activos=true')
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -20,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const badge = badges[p.categoria] || 'bg-secondary';
                 return `<div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm h-100 text-center p-4 food-card">
-                        ${imgSrc ? '<img src="' + imgSrc + '" alt="' + p.nombre + '" class="food-img mb-3" onerror="this.style.display=\'none\'">' : ''}
-                        <h3 class="fs-5 fw-bold">${p.nombre}</h3>
-                        <p class="text-muted small">${p.descripcion || ''}</p>
+                        ${imgSrc ? '<img src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(p.nombre) + '" class="food-img mb-3" onerror="this.style.display=\'none\'">' : ''}
+                        <h3 class="fs-5 fw-bold">${escapeHtml(p.nombre)}</h3>
+                        <p class="text-muted small">${escapeHtml(p.descripcion || '')}</p>
                         <p class="fw-bold text-warning fs-4">S/ ${(p.precio || 0).toFixed(2)}</p>
-                        <span class="badge ${badge} align-self-center">${p.categoria || ''}</span>
+                        <span class="badge ${badge} align-self-center">${escapeHtml(p.categoria || '')}</span>
                     </div>
                 </div>`;
             }).join('');

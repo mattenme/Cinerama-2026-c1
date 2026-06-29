@@ -12,16 +12,17 @@
 
         if (clienteId) {
             var li = icono.closest('li');
-            var dropdownItems = '<li><a class="dropdown-item" href="' + BASE_PATH + '/perfil.html">Mi Perfil</a></li>';
+            var dropdownItems = '';
             if (esAdmin) {
                 dropdownItems = '<li><a class="dropdown-item" href="' + BASE_PATH + '/admin/indexAdmin.html">Panel Admin</a></li>' +
-                    '<li><hr class="dropdown-divider"></li>' + dropdownItems;
+                    '<li><hr class="dropdown-divider"></li>';
             }
+            dropdownItems += '<li><a class="dropdown-item" href="' + BASE_PATH + '/perfil.html">Mi Perfil</a></li>';
             li.innerHTML =
                 '<div class="dropdown">' +
                     '<button class="btn dropdown-toggle text-white d-flex align-items-center gap-2 border-0" data-bs-toggle="dropdown" style="background:transparent;">' +
-                        '<img src="' + (avatar || BASE_PATH + '/assets/img/usuario.ico') + '" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;" onerror="this.src=\'' + BASE_PATH + '/assets/img/usuario.ico\'">' +
-                        '<span class="d-none d-md-inline small">' + nombre + '</span>' +
+                        '<img src="' + escapeHtml(avatar || BASE_PATH + '/assets/img/usuario.ico') + '" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;" onerror="this.src=\'' + BASE_PATH + '/assets/img/usuario.ico\'">' +
+                        '<span class="d-none d-md-inline small">' + escapeHtml(nombre) + '</span>' +
                     '</button>' +
                     '<ul class="dropdown-menu dropdown-menu-end">' +
                         dropdownItems +

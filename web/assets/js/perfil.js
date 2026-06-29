@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             '<img src="assets/img/usuario.ico" class="avatar-img">' +
                         '</div>' +
                         '<div class="col">' +
-                            '<h1 class="fw-bold mb-1">' + cliente.nombre + '</h1>' +
-                            '<p class="mb-0 opacity-75">DNI: ' + cliente.dni + '</p>' +
-                            (cliente.email ? '<p class="mb-0 opacity-75">' + cliente.email + '</p>' : '') +
-                            (cliente.telefono ? '<p class="mb-0 opacity-75">' + cliente.telefono + '</p>' : '') +
+                            '<h1 class="fw-bold mb-1">' + escapeHtml(cliente.nombre) + '</h1>' +
+                            '<p class="mb-0 opacity-75">DNI: ' + escapeHtml(cliente.dni) + '</p>' +
+                            (cliente.email ? '<p class="mb-0 opacity-75">' + escapeHtml(cliente.email) + '</p>' : '') +
+                            (cliente.telefono ? '<p class="mb-0 opacity-75">' + escapeHtml(cliente.telefono) + '</p>' : '') +
                         '</div>' +
                         '<div class="col-auto d-flex gap-2">' +
                             '<button class="btn btn-outline-warning d-none" id="btn-reportar-incidencia" onclick="reportarIncidencia()">Reportar Incidencia</button>' +
@@ -32,24 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div id="editar-form" class="card p-4 mb-4 bg-light border-0 d-none">' +
-                    '<h3 class="mb-3">Editar Perfil</h3>' +
-                    '<form onsubmit="guardarPerfil(event)">' +
-                        '<div class="row g-3">' +
-                            '<div class="col-12"><label class="form-label fw-semibold">Nombre:</label><input type="text" class="form-control" id="edit-nombre" required></div>' +
-                            '<div class="col-6"><label class="form-label fw-semibold">Email:</label><input type="email" class="form-control" id="edit-email"></div>' +
-                            '<div class="col-6"><label class="form-label fw-semibold">Tel\u00E9fono:</label><input type="tel" class="form-control" id="edit-telefono"></div>' +
-                            '<div class="col-12"><hr><h6 class="fw-bold">Cambiar Contrase\u00F1a</h6></div>' +
-                            '<div class="col-12"><label class="form-label fw-semibold">Contrase\u00F1a Actual:</label><input type="password" class="form-control" id="edit-contrasena-actual"></div>' +
-                            '<div class="col-6"><label class="form-label fw-semibold">Nueva Contrase\u00F1a:</label><input type="password" class="form-control" id="edit-contrasena-nueva"></div>' +
-                            '<div class="col-6"><label class="form-label fw-semibold">Confirmar:</label><input type="password" class="form-control" id="edit-contrasena-confirmar"></div>' +
-                        '</div>' +
-                        '<div class="mt-3 d-flex gap-2">' +
-                            '<button type="submit" class="btn btn-success">Guardar</button>' +
-                            '<button type="button" class="btn btn-secondary" onclick="cancelarEditar()">Cancelar</button>' +
-                        '</div>' +
-                    '</form>' +
-                '</div>' +
+
                 '<div class="row g-4">' +
                     '<div class="col-12">' +
                         cargarHistorial(clienteId) +
@@ -66,43 +49,83 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function mostrarEditar(nombre, email, telefono) {
-    document.getElementById('editar-form').classList.remove('d-none');
+    var modal = document.getElementById('editar-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'editar-modal';
+        modal.className = 'modal fade';
+        modal.tabIndex = -1;
+        modal.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered">' +
+                '<div class="modal-content bg-dark text-white">' +
+                    '<div class="modal-header border-secondary">' +
+                        '<h5 class="modal-title">Editar Perfil</h5>' +
+                        '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<form id="form-editar-perfil">' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Nombre:</label>' +
+                                '<input type="text" class="form-control" id="edit-nombre" required>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Tel\u00E9fono:</label>' +
+                                '<input type="tel" class="form-control" id="edit-telefono">' +
+                            '</div>' +
+                            '<hr class="border-secondary">' +
+                            '<h6 class="fw-bold mb-3">Cambiar Contrase\u00F1a</h6>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Contrase\u00F1a Actual:</label>' +
+                                '<input type="password" class="form-control" id="edit-contrasena-actual">' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Nueva Contrase\u00F1a:</label>' +
+                                '<input type="password" class="form-control" id="edit-contrasena-nueva">' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label fw-semibold">Confirmar:</label>' +
+                                '<input type="password" class="form-control" id="edit-contrasena-confirmar">' +
+                            '</div>' +
+                            '<div class="d-flex gap-2">' +
+                                '<button type="submit" class="btn btn-success">Guardar</button>' +
+                                '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>' +
+                            '</div>' +
+                        '</form>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(modal);
+        document.getElementById('form-editar-perfil').onsubmit = guardarPerfil;
+    }
     document.getElementById('edit-nombre').value = nombre;
-    document.getElementById('edit-email').value = email;
     document.getElementById('edit-telefono').value = telefono;
+    document.getElementById('edit-contrasena-actual').value = '';
+    document.getElementById('edit-contrasena-nueva').value = '';
+    document.getElementById('edit-contrasena-confirmar').value = '';
+    var bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
 }
 
-function cancelarEditar() {
-    document.getElementById('editar-form').classList.add('d-none');
-}
-
-function guardarPerfil(event) {
-    event.preventDefault();
-    var btn = event.target.querySelector('button[type="submit"]');
+function guardarPerfil(e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button[type="submit"]');
     if (btn && btn.disabled) return;
     var id = localStorage.getItem('clienteId');
     var params = new URLSearchParams();
     params.append('action', 'update');
     params.append('id', id);
     params.append('nombre', document.getElementById('edit-nombre').value);
-    params.append('email', document.getElementById('edit-email').value);
     params.append('telefono', document.getElementById('edit-telefono').value);
 
     var pwActual = document.getElementById('edit-contrasena-actual').value;
     var pwNueva = document.getElementById('edit-contrasena-nueva').value;
     var pwConfirmar = document.getElementById('edit-contrasena-confirmar').value;
 
-    function limpiarPw() {
-        document.getElementById('edit-contrasena-actual').value = '';
-        document.getElementById('edit-contrasena-nueva').value = '';
-        document.getElementById('edit-contrasena-confirmar').value = '';
-    }
-
     if (pwNueva || pwConfirmar || pwActual) {
-        if (!pwActual) { limpiarPw(); showError('Ingresa tu contrase\u00F1a actual para cambiar la contrase\u00F1a'); return; }
-        if (!pwNueva || !pwConfirmar) { limpiarPw(); showError('Completa todos los campos de contrase\u00F1a'); return; }
-        if (pwNueva !== pwConfirmar) { limpiarPw(); showError('Las contrase\u00F1as nuevas no coinciden'); return; }
-        if (pwNueva.length < 4) { limpiarPw(); showError('La contrase\u00F1a debe tener al menos 4 caracteres'); return; }
+        if (!pwActual) { pwError('Ingresa tu contrase\u00F1a actual para cambiar la contrase\u00F1a'); return; }
+        if (!pwNueva || !pwConfirmar) { pwError('Completa todos los campos de contrase\u00F1a'); return; }
+        if (pwNueva !== pwConfirmar) { pwError('Las contrase\u00F1as nuevas no coinciden'); return; }
+        if (pwNueva.length < 4) { pwError('La contrase\u00F1a debe tener al menos 4 caracteres'); return; }
         params.append('contrasena_actual', pwActual);
         params.append('contrasena', pwNueva);
     }
@@ -110,18 +133,25 @@ function guardarPerfil(event) {
     fetch(API_URL + '/ClienteController', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
         .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function(res) {
+            setLoading(btn, false);
             if (res.success) {
                 localStorage.setItem('clienteNombre', document.getElementById('edit-nombre').value);
-                cancelarEditar();
+                var modal = bootstrap.Modal.getInstance(document.getElementById('editar-modal'));
+                if (modal) modal.hide();
                 showSuccess('Perfil actualizado correctamente');
                 setTimeout(function() { location.reload(); }, 1000);
             } else {
-            setLoading(btn, false);
-            limpiarPw();
-            showError(res.mensaje || 'Error al guardar');
-                }
+                showError(res.mensaje || 'Error al guardar');
+            }
         })
         .catch(function() { setLoading(btn, false); showError('Error de conexi\u00F3n'); });
+}
+
+function pwError(msg) {
+    document.getElementById('edit-contrasena-actual').value = '';
+    document.getElementById('edit-contrasena-nueva').value = '';
+    document.getElementById('edit-contrasena-confirmar').value = '';
+    showError(msg);
 }
 
 function cargarHistorial(clienteId) {
@@ -189,13 +219,13 @@ function cargarHistorial(clienteId) {
                 colCal = '<span class="text-muted small">?</span>';
             }
             return '<tr>' +
-                '<td><strong>' + (c.funcion ? c.funcion.pelicula.titulo : '-') + '</strong></td>' +
-                '<td>' + (c.funcion ? c.funcion.sala.nombre : '-') + '</td>' +
-                '<td><span class="badge bg-secondary">' + g.filas.join(', ') + '</span></td>' +
-                '<td>' + formatearFecha(c.fecha_compra) + '</td>' +
-                '<td>S/ ' + (g.precio || 0).toFixed(2) + '</td>' +
-                '<td><span class="badge ' + (badgeMetodo[c.metodo_pago] || 'bg-secondary') + '">' + (c.metodo_pago || '-') + '</span></td>' +
-                '<td><span class="badge ' + (badge[c.estado] || 'bg-secondary') + '">' + (c.estado || '-') + '</span></td>' +
+                '<td><strong>' + escapeHtml(c.funcion ? c.funcion.pelicula.titulo : '-') + '</strong></td>' +
+                '<td>' + escapeHtml(c.funcion ? c.funcion.sala.nombre : '-') + '</td>' +
+                '<td><span class="badge bg-secondary">' + escapeHtml(g.filas.join(', ')) + '</span></td>' +
+                '<td>' + escapeHtml(formatearFecha(c.fecha_compra)) + '</td>' +
+                '<td>S/ ' + escapeHtml((g.precio || 0).toFixed(2)) + '</td>' +
+                '<td><span class="badge ' + (badgeMetodo[c.metodo_pago] || 'bg-secondary') + '">' + escapeHtml(c.metodo_pago || '-') + '</span></td>' +
+                '<td><span class="badge ' + (badge[c.estado] || 'bg-secondary') + '">' + escapeHtml(c.estado || '-') + '</span></td>' +
                 '<td>' + colCal + '</td>' +
             '</tr>';
         }).join('');

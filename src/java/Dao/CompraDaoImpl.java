@@ -15,7 +15,7 @@ public class CompraDaoImpl implements ICompra {
         String sql = "SELECT c.*, cl.dni, cl.nombre as cli_nombre, cl.email, cl.telefono, "
                    + "f.id_pelicula, f.id_sala, f.hora_inicio, f.estado as fun_estado, "
                    + "p.titulo, p.duracion_minutos, "
-                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, "
+                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, s.activo as sala_activo, "
                    + "a.id_asiento, a.fila, a.numero, a.estado as asi_estado "
                    + "FROM Compra c "
                    + "JOIN Cliente cl ON c.id_cliente = cl.id_cliente "
@@ -150,7 +150,7 @@ public class CompraDaoImpl implements ICompra {
         String sql = "SELECT c.*, cl.dni, cl.nombre as cli_nombre, cl.email, cl.telefono, "
                    + "f.id_pelicula, f.id_sala, f.hora_inicio, f.estado as fun_estado, "
                    + "p.titulo, p.duracion_minutos, "
-                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, "
+                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, s.activo as sala_activo, "
                    + "a.id_asiento, a.fila, a.numero, a.estado as asi_estado "
                    + "FROM Compra c "
                    + "JOIN Cliente cl ON c.id_cliente = cl.id_cliente "
@@ -191,7 +191,7 @@ public class CompraDaoImpl implements ICompra {
         String sql = "SELECT c.*, cl.dni, cl.nombre as cli_nombre, cl.email, cl.telefono, "
                    + "f.id_pelicula, f.id_sala, f.hora_inicio, f.estado as fun_estado, "
                    + "p.titulo, p.duracion_minutos, "
-                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, "
+                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, s.activo as sala_activo, "
                    + "a.id_asiento, a.fila, a.numero, a.estado as asi_estado "
                    + "FROM Compra c "
                    + "JOIN Cliente cl ON c.id_cliente = cl.id_cliente "
@@ -231,7 +231,7 @@ public class CompraDaoImpl implements ICompra {
             rs.getString("sala_nombre"),
             rs.getString("sala_tipo"),
             rs.getInt("capacidad_total"),
-            1
+            rs.getInt("sala_activo")
         );
         Funcion fun = new Funcion(
             rs.getInt("id_funcion"),

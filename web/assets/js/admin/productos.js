@@ -2,6 +2,7 @@ let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -75,17 +76,18 @@ let editandoId = null;
                 var items = todas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
                 tbody.innerHTML = items.map(p => {
                     const badgeCat = { Comida: 'bg-warning text-dark', Bebida: 'bg-info text-dark', Combo: 'bg-danger text-white' };
+                    var imgHtml = p.imagen_url ? '<img src="' + escapeHtml(p.imagen_url) + '" alt="img" class="admin-img-thumb" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onclick="abrirLightbox(\'' + escapeHtml(p.imagen_url) + '\')" onerror="this.style.display=\'none\'">' : '<span class="text-muted">?</span>';
                     return `<tr>
-                        <td>${p.id_producto}</td>
-                        <td>${p.imagen_url ? '<img src="' + p.imagen_url + '" alt="img" class="admin-img-thumb" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onclick="abrirLightbox(\'' + p.imagen_url.replace(/'/g, "\\'") + '\')" onerror="this.style.display=\'none\'">' : '<span class="text-muted">?</span>'}</td>
-                        <td><strong>${p.nombre}</strong></td>
-                        <td>${p.descripcion || '<span class="text-muted">?</span>'}</td>
-                        <td><strong>S/ ${(p.precio || 0).toFixed(2)}</strong></td>
-                        <td><span class="badge ${badgeCat[p.categoria] || 'bg-secondary'}">${p.categoria || '-'}</span></td>
-                        <td><span class="badge ${p.activo ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoProducto(${p.id_producto})">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
+                        <td>${escapeHtml(p.id_producto)}</td>
+                        <td>${imgHtml}</td>
+                        <td><strong>${escapeHtml(p.nombre)}</strong></td>
+                        <td>${escapeHtml(p.descripcion) || '<span class="text-muted">?</span>'}</td>
+                        <td><strong>S/ ${escapeHtml((p.precio || 0).toFixed(2))}</strong></td>
+                        <td><span class="badge ${badgeCat[p.categoria] || 'bg-secondary'}">${escapeHtml(p.categoria || '-')}</span></td>
+                        <td><span class="badge ${p.activo ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoProducto(${escapeHtml(p.id_producto)})">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${p.id_producto})">${iconSVG('edit')}</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${p.id_producto})">${iconSVG('trash')}</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${escapeHtml(p.id_producto)})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${escapeHtml(p.id_producto)})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -96,7 +98,7 @@ let editandoId = null;
         }
 
         window.toggleActivoProducto = function(id) {
-            Api.producto.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+            Api.producto.toggleActivo(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
             }
 
         function filtrarTabla() {
@@ -134,10 +136,10 @@ let editandoId = null;
 
         window.eliminar = function(id) {
             showConfirm('\u00BFEliminar producto #' + id + '?', function() {
-                Api.producto.eliminar(id).then(r => { if (r.success) cargarTabla(); });
+                Api.producto.eliminar(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
             });
         };
 
         window.editar = function(id) {
-            Api.producto.buscar(id).then(p => { if (p) mostrarFormulario(p); });
+            Api.producto.buscar(id).then(p => { if (p) mostrarFormulario(p); }).catch(function(e) { console.error(e); });
         };

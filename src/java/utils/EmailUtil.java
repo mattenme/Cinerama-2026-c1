@@ -29,7 +29,7 @@ public class EmailUtil {
             props.put("mail.debug", "true");
             from = props.getProperty("mail.from", "samuelbenavidesflores@gmail.com");
             username = props.getProperty("mail.username", "samuelbenavidesflores@gmail.com");
-            password = props.getProperty("mail.password", "huue ssgc huqb hsog");
+            password = props.getProperty("mail.password", "gkil opxk hacb dqmo");
         } catch (Exception e) {
             e.printStackTrace();
         }

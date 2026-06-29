@@ -155,21 +155,29 @@ public class SalaDaoImpl implements ISala {
     @Override
     public boolean delete(int id) {
         Connection cn = null;
-        PreparedStatement st1 = null;
-        PreparedStatement st2 = null;
-        PreparedStatement st3 = null;
+        PreparedStatement st1 = null, st2 = null, st3 = null, st4 = null, st5 = null;
         try {
             cn = ConexionSingleton.getConnection();
             cn.setAutoCommit(false);
-            st1 = cn.prepareStatement("DELETE FROM Compra WHERE id_asiento IN (SELECT id_asiento FROM Asiento WHERE id_sala=?)");
+            st1 = cn.prepareStatement("DELETE FROM Incidencia WHERE id_funcion IN (SELECT id_funcion FROM Funcion WHERE id_sala=?)");
             st1.setInt(1, id);
             st1.executeUpdate();
-            st2 = cn.prepareStatement("DELETE FROM Asiento WHERE id_sala=?");
+            st2 = cn.prepareStatement("DELETE FROM Compra WHERE id_funcion IN (SELECT id_funcion FROM Funcion WHERE id_sala=?)");
             st2.setInt(1, id);
             st2.executeUpdate();
-            st3 = cn.prepareStatement("DELETE FROM Sala WHERE id_sala=?");
+            st3 = cn.prepareStatement("DELETE FROM Compra WHERE id_asiento IN (SELECT id_asiento FROM Asiento WHERE id_sala=?)");
             st3.setInt(1, id);
-            int r = st3.executeUpdate();
+            st3.executeUpdate();
+            st4 = cn.prepareStatement("DELETE FROM Funcion WHERE id_sala=?");
+            st4.setInt(1, id);
+            st4.executeUpdate();
+            st5 = cn.prepareStatement("DELETE FROM Asiento WHERE id_sala=?");
+            st5.setInt(1, id);
+            st5.executeUpdate();
+            if (st1 != null) try { st1.close(); } catch (SQLException e) { }
+            st1 = cn.prepareStatement("DELETE FROM Sala WHERE id_sala=?");
+            st1.setInt(1, id);
+            int r = st1.executeUpdate();
             cn.commit();
             return r > 0;
         } catch (SQLException e) {
@@ -182,6 +190,8 @@ public class SalaDaoImpl implements ISala {
             try { if (st1 != null) st1.close(); } catch (SQLException e) { }
             try { if (st2 != null) st2.close(); } catch (SQLException e) { }
             try { if (st3 != null) st3.close(); } catch (SQLException e) { }
+            try { if (st4 != null) st4.close(); } catch (SQLException e) { }
+            try { if (st5 != null) st5.close(); } catch (SQLException e) { }
             if (cn != null) {
                 try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
             }

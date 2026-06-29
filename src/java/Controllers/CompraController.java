@@ -175,10 +175,12 @@ public class CompraController extends HttpServlet {
                 resp.getWriter().write("{\"success\":false,\"mensaje\":\"Acci\u00f3n no v\u00e1lida\"}");
             }
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o precio inv\u00e1lido\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o precio inv\u00e1lido\"}");
+            return;
         } catch (Exception e) {
             e.printStackTrace();
-            resp.getWriter().write("{\"success\":false,\"mensaje\":" + gson.toJson(e.getMessage() != null ? e.getMessage() : "Error") + "}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":" + gson.toJson(e.getMessage() != null ? e.getMessage() : "Error") + "}");
+            return;
         }
     }
 }

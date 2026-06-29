@@ -153,5 +153,6 @@ function abrirLightbox(src) {
     var el = document.getElementById('imageLightbox');
     if (!el) return;
     el.querySelector('.modal-body img').src = src;
-    new bootstrap.Modal(el).show();
+    var modal = new bootstrap.Modal(el);
+    modal.show();
 }

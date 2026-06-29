@@ -207,10 +207,10 @@ function mostrarInfoPelicula(funcion) {
     const fechaStr = fecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
     const horaStr = fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     info.innerHTML = `
-        <span><strong>Pel\u00EDcula:</strong> ${funcion.pelicula ? funcion.pelicula.titulo : '-'}</span>
-        <span><strong>Fecha:</strong> ${fechaStr}</span>
-        <span><strong>Horario:</strong> ${horaStr}</span>
-        <span><strong>Sala:</strong> ${funcion.sala ? funcion.sala.nombre : '-'}</span>
+        <span><strong>Pel\u00EDcula:</strong> ${escapeHtml(funcion.pelicula ? funcion.pelicula.titulo : '-')}</span>
+        <span><strong>Fecha:</strong> ${escapeHtml(fechaStr)}</span>
+        <span><strong>Horario:</strong> ${escapeHtml(horaStr)}</span>
+        <span><strong>Sala:</strong> ${escapeHtml(funcion.sala ? funcion.sala.nombre : '-')}</span>
     `;
 }
 
@@ -259,7 +259,7 @@ function actualizarResumen() {
         container.innerHTML = '<span class="text-muted">Ninguno seleccionado</span>';
     } else {
         var badges = selectedSeats.map(function(s) {
-            return '<span class="badge bg-warning text-dark me-1 mb-1">' + s + '</span>';
+            return '<span class="badge bg-warning text-dark me-1 mb-1">' + escapeHtml(s) + '</span>';
         }).join(' ');
         container.innerHTML = '<div class="d-flex flex-wrap align-items-center gap-1">' + badges + '<span class="ms-auto text-nowrap fw-semibold">S/ ' + (count * seatPrice) + '</span></div>';
     }

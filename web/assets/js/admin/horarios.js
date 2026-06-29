@@ -5,6 +5,7 @@ let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -42,15 +43,15 @@ let editandoId = null;
             Api.pelicula.listar().then(peliculas => {
                 const sel = document.getElementById('id_pelicula');
                 sel.innerHTML = '<option value="">Seleccionar pel\u00EDcula</option>' +
-                    peliculas.map(p => `<option value="${p.id_pelicula}">${p.titulo}</option>`).join('');
+                    peliculas.map(p => `<option value="${escapeHtml(p.id_pelicula)}">${escapeHtml(p.titulo)}</option>`).join('');
                 if (!editandoId && filtroPelicula) sel.value = filtroPelicula;
-            });
+            }).catch(function(e) { console.error(e); });
             Api.sala.listar().then(salas => {
                 const sel = document.getElementById('id_sala');
                 sel.innerHTML = '<option value="">Seleccionar sala</option>' +
-                    salas.map(s => `<option value="${s.id_sala}">${s.nombre}</option>`).join('');
+                    salas.map(s => `<option value="${escapeHtml(s.id_sala)}">${escapeHtml(s.nombre)}</option>`).join('');
                 if (!editandoId && filtroSala) sel.value = filtroSala;
-            });
+            }).catch(function(e) { console.error(e); });
         }
 
         function mostrarFormulario(data) {
@@ -72,7 +73,7 @@ let editandoId = null;
                 document.getElementById('id_pelicula').value = data.pelicula ? data.pelicula.id_pelicula : '';
                 document.getElementById('id_sala').value = data.sala ? data.sala.id_sala : '';
                 document.getElementById('hora_inicio').value = data.hora_inicio ? data.hora_inicio.substring(0, 16) : '';
-                document.getElementById('estado').value = data.estado || 'activa';
+                document.getElementById('estado').value = data.estado || 'Programada';
             } else {
                 if (filtroPelicula) document.getElementById('id_pelicula').value = filtroPelicula;
                 if (filtroSala) document.getElementById('id_sala').value = filtroSala;
@@ -122,15 +123,15 @@ let editandoId = null;
                     var badgeMap = { 'Programada': 'bg-primary', 'En curso': 'bg-success', 'Finalizada': 'bg-secondary', 'Cancelada': 'bg-danger' };
                     const badge = badgeMap[f.estado] || 'bg-secondary';
                     return `<tr>
-                        <td>${f.id_funcion}</td>
-                        <td><strong>${f.pelicula ? f.pelicula.titulo : '-'}</strong></td>
-                        <td>${f.sala ? f.sala.nombre : '-'}</td>
-                        <td>${fechaStr}</td>
-                        <td><span class="badge ${badge}">${f.estado || '-'}</span></td>
-                        <td><span class="badge ${f.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoHorario(${f.id_funcion})">${f.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
+                        <td>${escapeHtml(f.id_funcion)}</td>
+                        <td><strong>${escapeHtml(f.pelicula ? f.pelicula.titulo : '-')}</strong></td>
+                        <td>${escapeHtml(f.sala ? f.sala.nombre : '-')}</td>
+                        <td>${escapeHtml(fechaStr)}</td>
+                        <td><span class="badge ${badge}">${escapeHtml(f.estado || '-')}</span></td>
+                        <td><span class="badge ${f.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoHorario(${escapeHtml(f.id_funcion)})">${f.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editarHorario(${f.id_funcion})">${iconSVG('edit')}</button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="eliminarHorario(${f.id_funcion})">${iconSVG('trash')}</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editarHorario(${escapeHtml(f.id_funcion)})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="eliminarHorario(${escapeHtml(f.id_funcion)})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -173,17 +174,20 @@ let editandoId = null;
         };
 
         window.toggleActivoHorario = function(id) {
-            Api.funcion.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+            Api.funcion.toggleActivo(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
         };
 
         window.eliminarHorario = function(id) {
             showConfirm('\u00BFEliminar horario #' + id + '?', function() {
-                Api.funcion.eliminar(id).then(r => { if (r.success) cargarTabla(); });
+                Api.funcion.eliminar(id).then(r => {
+                    if (r.success) cargarTabla();
+                    else showError(r.mensaje || 'No se pudo eliminar el horario');
+                }).catch(() => showError('Error de conexi\u00F3n'));
             });
         };
 
         window.editarHorario = function(id) {
             Api.funcion.buscar(id).then(f => {
                 if (f) mostrarFormulario(f);
-            });
+            }).catch(function(e) { console.error(e); });
         };

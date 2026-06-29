@@ -19,27 +19,27 @@
                 <h2 class="text-center mb-4 fw-bold">Registrarse</h2>
 
                 <!-- Paso 1: formulario de registro -->
-                <form id="register-form">
+                <form id="register-form" novalidate>
                     <div class="mb-3">
                         <label for="dni" class="form-label fw-semibold">DNI</label>
-                        <input type="text" class="form-control" id="dni" maxlength="8" required>
+                        <input type="text" class="form-control" id="dni" name="dni" maxlength="8" required>
                     </div>
                     <div class="mb-3">
                         <label for="nombre" class="form-label fw-semibold">Nombre Completo</label>
-                        <input type="text" class="form-control" id="nombre" required>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label fw-semibold">Email</label>
-                        <input type="email" class="form-control" id="email" required>
+                        <input type="email" class="form-control" id="email" name="email" required>
                     </div>
                     <div class="mb-3">
                         <label for="telefono" class="form-label fw-semibold">Tel&eacute;fono</label>
-                        <input type="tel" class="form-control" id="telefono">
+                        <input type="tel" class="form-control" id="telefono" name="telefono">
                     </div>
                     <div class="mb-3">
                         <label for="contrasena" class="form-label fw-semibold">Contrase&ntilde;a</label>
                         <div class="input-group">
-                            <input type="password" class="form-control" id="contrasena" required>
+                            <input type="password" class="form-control" id="contrasena" name="contrasena" required>
                             <button type="button" class="btn btn-outline-secondary" id="toggle-password">
                                 <i class="bi bi-eye"></i>
                             </button>

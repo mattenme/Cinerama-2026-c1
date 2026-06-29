@@ -2,6 +2,7 @@ let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -72,14 +73,14 @@ let editandoId = null;
                 tbody.innerHTML = items.map(p => {
                     const badge = p.activo == 1 ? 'bg-success' : 'bg-danger';
                     return `<tr>
-                        <td>${p.id_promocion}</td>
-                        <td><strong>${p.codigo}</strong></td>
-                        <td>${p.descripcion || '<span class="text-muted">\u2014</span>'}</td>
-                        <td><span class="badge bg-warning text-dark">${p.descuento}%</span></td>
-                        <td><span class="badge ${p.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoPromo(${p.id_promocion})">${p.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
+                        <td>${escapeHtml(p.id_promocion)}</td>
+                        <td><strong>${escapeHtml(p.codigo)}</strong></td>
+                        <td>${escapeHtml(p.descripcion) || '<span class="text-muted">\u2014</span>'}</td>
+                        <td><span class="badge bg-warning text-dark">${escapeHtml(p.descuento)}%</span></td>
+                        <td><span class="badge ${p.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoPromo(${escapeHtml(p.id_promocion)})">${p.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${p.id_promocion})">${iconSVG('edit')}</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${p.id_promocion})">${iconSVG('trash')}</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${escapeHtml(p.id_promocion)})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${escapeHtml(p.id_promocion)})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -119,15 +120,15 @@ let editandoId = null;
         };
 
         window.editar = function(id) {
-            Api.promocion.buscar(id).then(p => { if (p) mostrarFormulario(p); });
+            Api.promocion.buscar(id).then(p => { if (p) mostrarFormulario(p); }).catch(function(e) { console.error(e); });
         };
 
         window.toggleActivoPromo = function(id) {
-            Api.promocion.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+            Api.promocion.toggleActivo(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
         };
 
         window.eliminar = function(id) {
             showConfirm('\u00BFEliminar promoci\u00F3n #' + id + '?', function() {
-                Api.promocion.eliminar(id).then(r => { if (r.success) cargarTabla(); });
+                Api.promocion.eliminar(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
             });
         };

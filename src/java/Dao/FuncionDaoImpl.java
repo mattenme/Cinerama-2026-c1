@@ -111,17 +111,19 @@ public class FuncionDaoImpl implements IFuncion {
     @Override
     public boolean delete(int id) {
         Connection cn = null;
-        PreparedStatement stCompra = null;
-        PreparedStatement stFuncion = null;
+        PreparedStatement st1 = null, st2 = null, st3 = null;
         try {
             cn = ConexionSingleton.getConnection();
             cn.setAutoCommit(false);
-            stCompra = cn.prepareStatement("DELETE FROM Compra WHERE id_funcion=?");
-            stCompra.setInt(1, id);
-            stCompra.executeUpdate();
-            stFuncion = cn.prepareStatement("DELETE FROM Funcion WHERE id_funcion=?");
-            stFuncion.setInt(1, id);
-            int r = stFuncion.executeUpdate();
+            st1 = cn.prepareStatement("DELETE FROM Incidencia WHERE id_funcion=?");
+            st1.setInt(1, id);
+            st1.executeUpdate();
+            st2 = cn.prepareStatement("DELETE FROM Compra WHERE id_funcion=?");
+            st2.setInt(1, id);
+            st2.executeUpdate();
+            st3 = cn.prepareStatement("DELETE FROM Funcion WHERE id_funcion=?");
+            st3.setInt(1, id);
+            int r = st3.executeUpdate();
             cn.commit();
             return r > 0;
         } catch (SQLException e) {
@@ -131,8 +133,9 @@ public class FuncionDaoImpl implements IFuncion {
             e.printStackTrace();
             return false;
         } finally {
-            try { if (stCompra != null) stCompra.close(); } catch (SQLException e) { }
-            try { if (stFuncion != null) stFuncion.close(); } catch (SQLException e) { }
+            try { if (st1 != null) st1.close(); } catch (SQLException e) { }
+            try { if (st2 != null) st2.close(); } catch (SQLException e) { }
+            try { if (st3 != null) st3.close(); } catch (SQLException e) { }
             if (cn != null) {
                 try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
             }

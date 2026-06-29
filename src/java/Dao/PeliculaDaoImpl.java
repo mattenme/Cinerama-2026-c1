@@ -112,17 +112,26 @@ public class PeliculaDaoImpl implements IPelicula {
     @Override
     public boolean delete(int id) {
         Connection cn = null;
-        PreparedStatement stFuncion = null;
-        PreparedStatement stPelicula = null;
+        PreparedStatement st1 = null, st2 = null, st3 = null, st4 = null;
         try {
             cn = ConexionSingleton.getConnection();
             cn.setAutoCommit(false);
-            stFuncion = cn.prepareStatement("DELETE FROM Funcion WHERE id_pelicula=?");
-            stFuncion.setInt(1, id);
-            stFuncion.executeUpdate();
-            stPelicula = cn.prepareStatement("DELETE FROM Pelicula WHERE id_pelicula=?");
-            stPelicula.setInt(1, id);
-            int r = stPelicula.executeUpdate();
+            st1 = cn.prepareStatement("DELETE FROM Incidencia WHERE id_funcion IN (SELECT id_funcion FROM Funcion WHERE id_pelicula=?)");
+            st1.setInt(1, id);
+            st1.executeUpdate();
+            st2 = cn.prepareStatement("DELETE FROM Compra WHERE id_funcion IN (SELECT id_funcion FROM Funcion WHERE id_pelicula=?)");
+            st2.setInt(1, id);
+            st2.executeUpdate();
+            st3 = cn.prepareStatement("DELETE FROM Calificacion WHERE id_pelicula=?");
+            st3.setInt(1, id);
+            st3.executeUpdate();
+            st4 = cn.prepareStatement("DELETE FROM Funcion WHERE id_pelicula=?");
+            st4.setInt(1, id);
+            st4.executeUpdate();
+            if (st1 != null) try { st1.close(); } catch (SQLException e) { }
+            st1 = cn.prepareStatement("DELETE FROM Pelicula WHERE id_pelicula=?");
+            st1.setInt(1, id);
+            int r = st1.executeUpdate();
             cn.commit();
             return r > 0;
         } catch (SQLException e) {
@@ -132,8 +141,10 @@ public class PeliculaDaoImpl implements IPelicula {
             e.printStackTrace();
             return false;
         } finally {
-            try { if (stFuncion != null) stFuncion.close(); } catch (SQLException e) { }
-            try { if (stPelicula != null) stPelicula.close(); } catch (SQLException e) { }
+            try { if (st1 != null) st1.close(); } catch (SQLException e) { }
+            try { if (st2 != null) st2.close(); } catch (SQLException e) { }
+            try { if (st3 != null) st3.close(); } catch (SQLException e) { }
+            try { if (st4 != null) st4.close(); } catch (SQLException e) { }
             if (cn != null) {
                 try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
             }

@@ -92,3 +92,8 @@ window.showConfirm = function(msg, onConfirm) {
     document.getElementById('confirm-no').addEventListener('click', cerrarConfirm);
     function cerrarConfirm() { if (d.parentNode) d.remove(); }
 };
+
+window.escapeHtml = function(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+};

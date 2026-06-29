@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -59,12 +60,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         estrellasHtml += i < c.puntuacion ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-warning"></i>';
                     }
                     return `<tr>
-                        <td><strong>${cliMap[c.id_cliente] || '#' + c.id_cliente}</strong></td>
-                        <td>${peliMap[c.id_pelicula] || '#' + c.id_pelicula}</td>
-                        <td><span class="text-nowrap">${estrellasHtml}</span> <span class="text-muted">(${c.puntuacion}/5)</span></td>
-                        <td>${fechaStr}</td>
+                        <td><strong>${escapeHtml(cliMap[c.id_cliente] || '#' + c.id_cliente)}</strong></td>
+                        <td>${escapeHtml(peliMap[c.id_pelicula] || '#' + c.id_pelicula)}</td>
+                        <td><span class="text-nowrap">${estrellasHtml}</span> <span class="text-muted">(${escapeHtml(c.puntuacion)}/5)</span></td>
+                        <td>${escapeHtml(fechaStr)}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${c.id_cliente},${c.id_pelicula})">${iconSVG('trash')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${escapeHtml(c.id_cliente)},${escapeHtml(c.id_pelicula)})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -89,6 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         window.eliminar = function(idC, idP) {
             showConfirm('\u00BFEliminar calificaci\u00F3n del cliente ' + idC + ' para pel\u00EDcula ' + idP + '?', function() {
-                Api.calificacion.eliminar(idC, idP).then(r => { if (r.success) cargarTabla(); else showError(r.mensaje || 'Error al eliminar'); });
+                Api.calificacion.eliminar(idC, idP).then(r => { if (r.success) cargarTabla(); else showError(r.mensaje || 'Error al eliminar'); }).catch(function() { showError('Error de conexi\u00F3n'); });
             });
         };

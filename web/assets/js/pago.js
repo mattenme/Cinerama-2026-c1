@@ -12,8 +12,8 @@ var _descuento = 0;
     _idAsiento = urlParams.get('id_asiento') || '';
 
     document.getElementById('summary-seats').textContent = _seats;
-    document.getElementById('summary-tickets').textContent = '$' + _total;
-    document.getElementById('summary-grand-total').textContent = '$' + _grandTotal;
+    document.getElementById('summary-tickets').textContent = 'S/ ' + _total;
+    document.getElementById('summary-grand-total').textContent = 'S/ ' + _grandTotal;
 
     if (_food) {
         var foodContainer = document.getElementById('summary-food-container');
@@ -29,7 +29,7 @@ var _descuento = 0;
         } catch(e) {
             foodList.innerHTML = '<li class="text-muted">' + _food + '</li>';
         }
-        document.getElementById('summary-food-total').textContent = '$' + foodTotal.toFixed(2);
+        document.getElementById('summary-food-total').textContent = 'S/ ' + foodTotal.toFixed(2);
         foodContainer.classList.remove('d-none');
     }
 })();
@@ -65,15 +65,15 @@ function aplicarPromo() {
                 discountRow = document.createElement('div');
                 discountRow.id = 'discount-row';
                 discountRow.className = 'd-flex justify-content-between small text-success fw-bold mt-1 pt-1 border-top border-success';
-                discountRow.innerHTML = '<span>Descuento (' + _descuento + '%)</span><span>-$' + (original - finalPrecio).toFixed(2) + '</span>';
+                discountRow.innerHTML = '<span>Descuento (' + _descuento + '%)</span><span>-S/ ' + (original - finalPrecio).toFixed(2) + '</span>';
                 grandEl.parentNode.insertBefore(discountRow, grandEl.parentNode.querySelector('.fw-bold'));
             }
-            grandEl.textContent = '$' + finalPrecio.toFixed(2);
+            grandEl.textContent = 'S/ ' + finalPrecio.toFixed(2);
             document.getElementById('promo-mensaje').innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Descuento del ' + _descuento + '% aplicado</span>';
             document.getElementById('btn-aplicar-promo').disabled = true;
             document.getElementById('codigo-promo').disabled = true;
         } else {
-            document.getElementById('promo-mensaje').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i> ' + data.error + '</span>';
+            document.getElementById('promo-mensaje').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i> ' + escapeHtml(data.error) + '</span>';
         }
     })
     .catch(function(e) {

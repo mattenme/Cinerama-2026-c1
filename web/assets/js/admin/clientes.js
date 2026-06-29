@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
             if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
+            fetch(API_URL + '/ClienteController?action=checkAdmin').then(function(r) { return r.json(); }).then(function(d) { if (!d.admin) { window.location.href = '../login.html'; } }).catch(function() { window.location.href = '../login.html'; });
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -45,14 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 var items = todas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
                 tbody.innerHTML = items.map(c => {
                     return `<tr>
-                        <td>${c.id_cliente}</td>
-                        <td>${c.dni || '-'}</td>
-                        <td><strong>${c.nombre || '-'}</strong></td>
-                        <td>${c.email || '<span class="text-muted">?</span>'}</td>
-                        <td>${c.telefono || '<span class="text-muted">?</span>'}</td>
-                        <td><span class="badge ${c.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivo(${c.id_cliente})">${c.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
+                        <td>${escapeHtml(c.id_cliente)}</td>
+                        <td>${escapeHtml(c.dni || '-')}</td>
+                        <td><strong>${escapeHtml(c.nombre || '-')}</strong></td>
+                        <td>${escapeHtml(c.email) || '<span class="text-muted">?</span>'}</td>
+                        <td>${escapeHtml(c.telefono) || '<span class="text-muted">?</span>'}</td>
+                        <td><span class="badge ${c.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivo(${escapeHtml(c.id_cliente)})">${c.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${c.id_cliente})">${iconSVG('trash')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${escapeHtml(c.id_cliente)})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -76,11 +77,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         window.toggleActivo = function(id) {
-            Api.cliente.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+            Api.cliente.toggleActivo(id).then(r => { if (r.success) cargarTabla(); }).catch(function() { showError('Error de conexi\u00F3n'); });
         };
 
         window.eliminar = function(id) {
             showConfirm('\u00BFEliminar cliente #' + id + '?', function() {
-                Api.cliente.eliminar(id).then(r => { if (r.success) cargarTabla(); else showError(r.mensaje || 'Error al eliminar'); });
+                Api.cliente.eliminar(id).then(r => { if (r.success) cargarTabla(); else showError(r.mensaje || 'Error al eliminar'); }).catch(function() { showError('Error de conexi\u00F3n'); });
             });
         };

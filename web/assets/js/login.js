@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     _registroId = data.id;
                     loginForm.classList.add('d-none');
                     document.getElementById('verify-section').classList.remove('d-none');
-                    document.getElementById('verify-email').textContent = dni;
+                    document.getElementById('verify-email').textContent = data.email || dni;
                     document.querySelector('#code-inputs input').focus();
                 } else {
                     showError(data.mensaje || 'Credenciales incorrectas');

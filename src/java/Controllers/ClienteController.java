@@ -34,6 +34,11 @@ public class ClienteController extends HttpServlet {
         resp.setContentType("application/json;charset=UTF-8");
         try {
             String action = req.getParameter("action");
+            if ("checkAdmin".equals(action)) {
+                boolean isAdmin = utils.AuthUtil.esAdmin(req);
+                resp.getWriter().write("{\"admin\":" + isAdmin + "}");
+                return;
+            }
             if ("logout".equals(action)) {
                 HttpSession session = req.getSession(false);
                 if (session != null) session.invalidate();
@@ -52,7 +57,8 @@ public class ClienteController extends HttpServlet {
                 Cliente c = clienteDao.autenticar(dni, contrasena);
                 if (c != null) {
                     if (c.getVerificado() == 0 && !"00000000".equals(c.getDni())) {
-                        resp.getWriter().write("{\"success\":false,\"needVerify\":true,\"id\":" + c.getId_cliente() + ",\"mensaje\":\"Debes verificar tu correo electr\u00f3nico\"}");
+                        String email = c.getEmail() != null ? c.getEmail() : "";
+                        resp.getWriter().write("{\"success\":false,\"needVerify\":true,\"id\":" + c.getId_cliente() + ",\"email\":" + gson.toJson(email) + ",\"mensaje\":\"Debes verificar tu correo electr\u00f3nico\"}");
                         return;
                     }
 
@@ -201,9 +207,21 @@ public class ClienteController extends HttpServlet {
                 }
                 String nuevoCodigo = String.format("%06d", (int)(Math.random() * 1000000));
                 clienteDao.guardarCodigoVerificacion(idCliente, nuevoCodigo);
-                EmailUtil.enviarCodigoVerificacion(c.getEmail(), nuevoCodigo);
+                try {
+                    EmailUtil.enviarCodigoVerificacion(c.getEmail(), nuevoCodigo);
+                } catch (Exception ex) {
+                    System.err.println("Error reenviando codigo de verificación: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
                 resp.getWriter().write("{\"success\":true}");
             } else if ("update".equals(action)) {
+                HttpSession session = req.getSession(false);
+                int sessionId = session != null ? (int) session.getAttribute("clienteId") : -1;
+                int updateId = Integer.parseInt(req.getParameter("id"));
+                if (!"admin".equals(session.getAttribute("rol")) && sessionId != updateId) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Cliente c = clienteDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (c != null) {
                     if (req.getParameter("nombre") != null) c.setNombre(req.getParameter("nombre"));
@@ -238,6 +256,10 @@ public class ClienteController extends HttpServlet {
                 boolean ok = EmailUtil.enviarCodigoVerificacion(testEmail, testCodigo);
                 resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Correo enviado" : "Error al enviar correo - revisa logs del servidor") + "\"}");
             } else if ("toggleActivo".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 boolean ok = clienteDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
                 resp.getWriter().write("{\"success\":" + ok + "}");
             } else if ("delete".equals(action)) {
@@ -249,9 +271,9 @@ public class ClienteController extends HttpServlet {
                 resp.getWriter().write("{\"success\":" + ok + "}");
             }
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
         } catch (Exception e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
             e.printStackTrace();
         }
     }

@@ -54,24 +54,32 @@ public class ProductoController extends HttpServlet {
         try {
             String action = req.getParameter("action");
             if ("insertar".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Producto p = new Producto();
                 p.setNombre(req.getParameter("nombre"));
                 p.setDescripcion(req.getParameter("descripcion"));
                 p.setPrecio(Double.parseDouble(req.getParameter("precio")));
                 p.setCategoria(req.getParameter("categoria"));
-                p.setActivo("1".equals(req.getParameter("activo")) || "true".equals(req.getParameter("activo")));
+                p.setActivo("1".equals(req.getParameter("activo")) || "true".equals(req.getParameter("activo")) ? 1 : 0);
                 String img = subirImagen(req, req.getContextPath());
                 p.setImagen_url(img != null ? img : req.getParameter("imagen_url"));
                 int id = prodDao.insertar(p);
                 ok = id > 0;
             } else if ("update".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 Producto p = prodDao.searchById(Integer.parseInt(req.getParameter("id")));
                 if (p != null) {
                     p.setNombre(req.getParameter("nombre"));
                     p.setDescripcion(req.getParameter("descripcion"));
                     p.setPrecio(Double.parseDouble(req.getParameter("precio")));
                     p.setCategoria(req.getParameter("categoria"));
-                    p.setActivo("1".equals(req.getParameter("activo")) || "true".equals(req.getParameter("activo")));
+                    p.setActivo("1".equals(req.getParameter("activo")) || "true".equals(req.getParameter("activo")) ? 1 : 0);
                     String img = subirImagen(req, req.getContextPath());
                     if (img != null) {
                         borrarImagenAnterior(p.getImagen_url(), req);
@@ -82,6 +90,10 @@ public class ProductoController extends HttpServlet {
                     ok = prodDao.update(p);
                 }
             } else if ("toggleActivo".equals(action)) {
+                if (!utils.AuthUtil.esAdmin(req)) {
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
+                    return;
+                }
                 ok = prodDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {
@@ -121,8 +133,8 @@ public class ProductoController extends HttpServlet {
         String dir = rootPath() + "assets" + File.separator + "img" + File.separator + "comida";
         new File(dir).mkdirs();
         String uniqueName = System.currentTimeMillis() + "_" + fileName;
-        String ext = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase() : ".jpg";
-        String format = ext.equals(".png") ? "png" : "jpg";
+        String ext = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase() : "jpg";
+        String format = ext.equals("jpeg") ? "jpg" : (ext.equals("png") || ext.equals("gif") || ext.equals("bmp") || ext.equals("wbmp") ? ext : "jpg");
         File outFile = new File(dir + File.separator + uniqueName);
         BufferedImage original = ImageIO.read(filePart.getInputStream());
         if (original != null) {

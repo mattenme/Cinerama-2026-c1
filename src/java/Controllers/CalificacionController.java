@@ -64,13 +64,13 @@ public class CalificacionController extends HttpServlet {
                 );
             }
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
             return;
         } catch (Exception e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error interno\"}");
             e.printStackTrace();
             return;
         }
-        resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "\"}");
+        if (!resp.isCommitted()) resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "\"}");
     }
 }

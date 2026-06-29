@@ -177,6 +177,7 @@
                 .then(function(r) { return r.text(); })
                 .then(function(data) {
                     document.getElementById('header-placeholder').innerHTML = data;
+                    setActiveNavLink();
                 });
             fetch('includes/footer.html')
                 .then(function(r) { return r.text(); })
