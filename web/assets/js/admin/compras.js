@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+    if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
     fetch('../includes/header.html')
         .then(r => r.text())
         .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -20,11 +20,29 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarTabla();
 });
 
+var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
+
+function actualizarPaginacion() {
+    var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+    var el;
+    if (el = document.getElementById('pagination-info')) el.textContent = 'Total: ' + totalItems + ' registros';
+    if (el = document.getElementById('pagination-page')) el.textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+    if (el = document.getElementById('btn-prev')) el.disabled = paginaActual <= 0;
+    if (el = document.getElementById('btn-next')) el.disabled = paginaActual >= totalPaginas - 1;
+}
+
+window.paginar = function(dir) {
+    var nueva = paginaActual + dir;
+    if (nueva < 0) return;
+    paginaActual = nueva;
+    cargarTabla();
+};
+
 function cargarTabla() {
     const tbody = document.querySelector('#tabla tbody');
-    Api.compra.listar().then(lista => {
+    Api.compra.listar().then(todas => {
         var grupos = {};
-        lista.forEach(function(c) {
+        todas.forEach(function(c) {
             var raw = c.codigo_qr || 'cmp_' + c.id_compra;
             var qr = raw.replace(/_\d+$/, '');
             if (!grupos[qr]) {
@@ -38,18 +56,21 @@ function cargarTabla() {
                     fecha_compra: c.fecha_compra,
                     codigo_qr: raw,
                     productos: c.productos,
-                    butacas: [],
+                    asientos: [],
                     filas: []
                 };
             }
             var g = grupos[qr];
             g.precio += c.precio || 0;
-            if (c.butaca) {
-                g.butacas.push(c.butaca);
-                g.filas.push(c.butaca.fila + c.butaca.numero);
+            if (c.asiento) {
+                g.asientos.push(c.asiento);
+                g.filas.push(c.asiento.fila + c.asiento.numero);
             }
         });
-        tbody.innerHTML = Object.keys(grupos).map(function(qr) {
+        var keys = Object.keys(grupos);
+        totalItems = keys.length;
+        var pageKeys = keys.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
+        tbody.innerHTML = pageKeys.map(function(qr) {
             var g = grupos[qr];
             const fecha = g.fecha_compra ? new Date(g.fecha_compra) : null;
             const fechaStr = fecha ? fecha.toLocaleString('es-PE') : '-';
@@ -65,21 +86,22 @@ function cargarTabla() {
                     }
                 }
             }
-            const butacasStr = g.filas.join(', ') || '-';
+            const asientosStr = g.filas.join(', ') || '-';
             return `<tr>
                 <td>${g.id_compra}</td>
                 <td>${g.cliente ? g.cliente.nombre || '#' + g.cliente.id_cliente : '-'}</td>
                 <td>${g.funcion ? '#' + g.funcion.id_funcion : '-'}</td>
-                <td>${butacasStr}</td>
+                <td>                ${asientosStr}</td>
                 <td><strong>S/ ${g.precio ? g.precio.toFixed(2) : '0.00'}</strong></td>
                 <td><small>${prodStr || '-'}</small></td>
                 <td><span class="badge ${badgeMetodo[g.metodo_pago] || 'bg-secondary'}">${g.metodo_pago || '-'}</span></td>
                 <td><span class="badge ${badgeEstado[g.estado] || 'bg-secondary'}">${g.estado || '-'}</span></td>
                 <td>${fechaStr}</td>
                 <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${g.codigo_qr || ''}">${g.codigo_qr ? g.codigo_qr.substring(0, 8) + '...' : '-'}</td>
-                <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGrupo('${qr}')">Eliminar</button></td>
+                <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarGrupo('${qr}')">${iconSVG('trash')}</button></td>
             </tr>`;
         }).join('');
+        actualizarPaginacion();
     }).catch(() => {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted">Error al cargar</td></tr>';
     });

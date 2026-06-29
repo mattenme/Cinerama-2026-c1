@@ -3,7 +3,7 @@
         var icono = document.querySelector('.login-icon');
         if (!icono) return false;
         var clienteId = localStorage.getItem('clienteId');
-        var esAdmin = localStorage.getItem('clienteAdmin') === 'true';
+        var esAdmin = localStorage.getItem('clienteRol') === 'admin';
         var nombre = localStorage.getItem('clienteNombre') || 'Usuario';
         var avatar = localStorage.getItem('clienteAvatar') || '';
 
@@ -26,12 +26,20 @@
                     '<ul class="dropdown-menu dropdown-menu-end">' +
                         dropdownItems +
                         '<li><hr class="dropdown-divider"></li>' +
-                        '<li><a class="dropdown-item text-danger" href="#" onclick="var dm=localStorage.getItem(\'cin-dark-mode\');localStorage.clear();if(dm)localStorage.setItem(\'cin-dark-mode\',dm);location.href=\'' + BASE_PATH + '/\'">Cerrar Sesi\u00F3n</a></li>' +
+                        '<li><a class="dropdown-item text-danger" href="#" onclick="logout()">Cerrar Sesi\u00F3n</a></li>' +
                     '</ul>' +
                 '</div>';
         }
         return true;
     }
+    window.logout = function() {
+        var dm = localStorage.getItem('cin-dark-mode');
+        fetch(API_URL + '/ClienteController?action=logout').catch(function() {});
+        localStorage.clear();
+        if (dm) localStorage.setItem('cin-dark-mode', dm);
+        location.href = BASE_PATH + '/';
+    };
+
     var pollAttempts = 0;
     var poll = setInterval(function() {
         pollAttempts++;

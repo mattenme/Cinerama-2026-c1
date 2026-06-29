@@ -81,6 +81,8 @@ public class ProductoController extends HttpServlet {
                     }
                     ok = prodDao.update(p);
                 }
+            } else if ("toggleActivo".equals(action)) {
+                ok = prodDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {
                     resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
@@ -93,14 +95,16 @@ public class ProductoController extends HttpServlet {
                 }
             }
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o precio inv\u00e1lido\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o precio inv\u00e1lido\"}");
             return;
         } catch (Exception e) {
-            resp.getWriter().write("{\"success\":false,\"mensaje\":\"Error: " + e.getMessage().replace("\"", "'") + "\"}");
             e.printStackTrace();
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":" + gson.toJson(e.getMessage() != null ? e.getMessage() : "Error") + "}");
             return;
         }
-        resp.getWriter().write("{\"success\":" + ok + "}");
+        if (!resp.isCommitted()) {
+            resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":" + gson.toJson(ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "}");
+        }
     }
 
     private String rootPath() {

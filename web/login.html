@@ -23,11 +23,39 @@
                         <input type="text" class="form-control" id="dni" name="dni" maxlength="8" required>
                     </div>
                     <div class="mb-3">
-                        <label for="nombre" class="form-label fw-semibold">Nombre Completo</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        <label for="contrasena" class="form-label fw-semibold">Contrase&ntilde;a</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="contrasena" name="contrasena" required>
+                            <button type="button" class="btn btn-outline-secondary" id="toggle-password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-warning w-100 fw-bold py-2">Iniciar Sesi&oacute;n</button>
                 </form>
+                <!-- Verificación de código (se muestra cuando el usuario no ha verificado email) -->
+                <div id="verify-section" class="d-none">
+                    <hr>
+                    <div class="text-center mb-3">
+                        <p class="mb-1 text-muted">Ingresa el c&oacute;digo enviado a tu correo</p>
+                        <p class="fw-semibold" id="verify-email"></p>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-center gap-2" id="code-inputs">
+                            <input type="text" class="form-control text-center fw-bold" maxlength="1" style="width:45px;height:50px;font-size:1.3rem;" data-idx="0">
+                            <input type="text" class="form-control text-center fw-bold" maxlength="1" style="width:45px;height:50px;font-size:1.3rem;" data-idx="1">
+                            <input type="text" class="form-control text-center fw-bold" maxlength="1" style="width:45px;height:50px;font-size:1.3rem;" data-idx="2">
+                            <input type="text" class="form-control text-center fw-bold" maxlength="1" style="width:45px;height:50px;font-size:1.3rem;" data-idx="3">
+                            <input type="text" class="form-control text-center fw-bold" maxlength="1" style="width:45px;height:50px;font-size:1.3rem;" data-idx="4">
+                            <input type="text" class="form-control text-center fw-bold" maxlength="1" style="width:45px;height:50px;font-size:1.3rem;" data-idx="5">
+                        </div>
+                        <p id="code-error" class="text-danger small mt-2 text-center d-none"></p>
+                    </div>
+                    <button class="btn btn-warning w-100 fw-bold py-2" id="btn-verify">Verificar</button>
+                    <div class="text-center mt-2">
+                        <button class="btn btn-link btn-sm text-decoration-none" id="btn-resend">Reenviar c&oacute;digo</button>
+                    </div>
+                </div>
                 <p class="text-center mt-3 mb-0">&iquest;No tienes cuenta? <a href="registrarse.html" class="text-danger">Reg&iacute;strate aqu&iacute;</a></p>
             </div>
         </section>
@@ -35,6 +63,7 @@
 
     <div id="footer-placeholder"></div>
 
+    <script src="assets/js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -53,17 +82,18 @@
                 })
                 .catch(error => console.error('Error cargando footer:', error));
         });
-
-        function setActiveNavLink() {
-            var path = window.location.pathname;
-            document.querySelectorAll('.navbar-nav .nav-link').forEach(function(link) {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === path || (path === '/Cinerama_1/' && link.getAttribute('href') === '/Cinerama_1/index.html')) link.classList.add('active');
-            });
-        }
     </script>
-    <script src="assets/js/config.js"></script>
     <script src="assets/js/login.js"></script>
-<script src="assets/js/utils.js"></script><script src="assets/js/header-auth.js"></script><script src="assets/js/darkmode.js"></script></body>
+<script src="assets/js/utils.js"></script><script src="assets/js/header-auth.js"></script><script src="assets/js/darkmode.js"></script>
+<script>
+if (new URLSearchParams(location.search).get('testemail')) {
+    var email = prompt('Email de prueba:');
+    if (email) {
+        fetch(API_URL + '/ClienteController', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'action=testEmail&email='+encodeURIComponent(email) })
+        .then(function(r){return r.json()}).then(function(d){alert(d.mensaje)}).catch(function(e){alert('Error: '+e)});
+    }
+}
+</script>
+</body>
 </html>
 

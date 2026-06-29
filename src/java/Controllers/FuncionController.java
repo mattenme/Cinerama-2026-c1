@@ -57,6 +57,7 @@ public class FuncionController extends HttpServlet {
                 f.setSala(s);
                 f.setHora_inicio(req.getParameter("hora_inicio"));
                 f.setEstado(req.getParameter("estado"));
+                f.setActivo(1);
                 ok = funcionDao.insertar(f);
             } else if ("update".equals(action)) {
                 Funcion f = funcionDao.searchById(Integer.parseInt(req.getParameter("id")));
@@ -71,20 +72,24 @@ public class FuncionController extends HttpServlet {
                     f.setEstado(req.getParameter("estado"));
                     ok = funcionDao.update(f);
                 }
+            } else if ("toggleActivo".equals(action)) {
+                ok = funcionDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {
-                    resp.getWriter().write("{\"success\":false,\"error\":\"No autorizado\"}");
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
                     return;
                 }
                 ok = funcionDao.delete(Integer.parseInt(req.getParameter("id")));
             }
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"error\":\"ID inv\u00e1lido\"}");
+            resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
             return;
         } catch (Exception e) {
             e.printStackTrace();
-            error = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "Error desconocido";
+            error = gson.toJson(e.getMessage() != null ? e.getMessage() : "Error desconocido");
         }
-        resp.getWriter().write("{\"success\":" + ok + ",\"error\":\"" + error + "\"}");
+        if (!resp.isCommitted()) {
+            resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":" + error + "}");
+        }
     }
 }

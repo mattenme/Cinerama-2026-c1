@@ -106,6 +106,13 @@ public class PromocionController extends HttpServlet {
                     resp.getWriter().write("{\"success\":true,\"mensaje\":\"Promoci\u00f3n actualizada\"}");
                     break;
                 }
+                case "toggleActivo": {
+                    String idStr2 = req.getParameter("id");
+                    if (idStr2 == null) { resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID requerido\"}"); return; }
+                    promoDao.toggleActivo(Integer.parseInt(idStr2));
+                    resp.getWriter().write("{\"success\":true,\"mensaje\":\"Estado cambiado\"}");
+                    break;
+                }
                 case "delete": {
                     if (!utils.AuthUtil.esAdmin(req)) {
                         resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");

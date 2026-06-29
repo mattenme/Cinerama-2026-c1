@@ -15,9 +15,9 @@ public class FuncionDaoImpl implements IFuncion {
     public List<Funcion> lista() {
         List<Funcion> lista = new ArrayList<>();
         String sql = "SELECT f.id_funcion, f.id_pelicula, f.id_sala, "
-                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, "
+                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, f.activo, "
                    + "p.titulo, p.duracion_minutos, "
-                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
+                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad, s.activo as sala_activo "
                    + "FROM Funcion f "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
                    + "JOIN Sala s ON f.id_sala = s.id_sala";
@@ -33,7 +33,7 @@ public class FuncionDaoImpl implements IFuncion {
 
     @Override
     public boolean insertar(Funcion fun) {
-        String sql = "INSERT INTO Funcion (id_pelicula, id_sala, hora_inicio, estado) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Funcion (id_pelicula, id_sala, hora_inicio, estado, activo) VALUES (?, ?, ?, ?, ?)";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, fun.getPelicula().getId_pelicula());
@@ -42,6 +42,7 @@ public class FuncionDaoImpl implements IFuncion {
             if (ts == null) return false;
             st.setTimestamp(3, ts);
             st.setString(4, fun.getEstado());
+            st.setInt(5, fun.getActivo());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -51,7 +52,7 @@ public class FuncionDaoImpl implements IFuncion {
 
     @Override
     public boolean update(Funcion fun) {
-        String sql = "UPDATE Funcion SET id_pelicula=?, id_sala=?, hora_inicio=?, estado=? WHERE id_funcion=?";
+        String sql = "UPDATE Funcion SET id_pelicula=?, id_sala=?, hora_inicio=?, estado=?, activo=? WHERE id_funcion=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, fun.getPelicula().getId_pelicula());
@@ -60,7 +61,8 @@ public class FuncionDaoImpl implements IFuncion {
             if (ts == null) return false;
             st.setTimestamp(3, ts);
             st.setString(4, fun.getEstado());
-            st.setInt(5, fun.getId_funcion());
+            st.setInt(5, fun.getActivo());
+            st.setInt(6, fun.getId_funcion());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -88,9 +90,9 @@ public class FuncionDaoImpl implements IFuncion {
     public Funcion searchById(int id) {
         Funcion fun = null;
         String sql = "SELECT f.id_funcion, f.id_pelicula, f.id_sala, "
-                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, "
+                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, f.activo, "
                    + "p.titulo, p.duracion_minutos, "
-                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
+                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad, s.activo as sala_activo "
                    + "FROM Funcion f "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
                    + "JOIN Sala s ON f.id_sala = s.id_sala WHERE f.id_funcion=?";
@@ -108,14 +110,32 @@ public class FuncionDaoImpl implements IFuncion {
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM Funcion WHERE id_funcion=?";
-        try (Connection cn = ConexionSingleton.getConnection();
-             PreparedStatement st = cn.prepareStatement(sql)) {
-            st.setInt(1, id);
-            return st.executeUpdate() > 0;
+        Connection cn = null;
+        PreparedStatement stCompra = null;
+        PreparedStatement stFuncion = null;
+        try {
+            cn = ConexionSingleton.getConnection();
+            cn.setAutoCommit(false);
+            stCompra = cn.prepareStatement("DELETE FROM Compra WHERE id_funcion=?");
+            stCompra.setInt(1, id);
+            stCompra.executeUpdate();
+            stFuncion = cn.prepareStatement("DELETE FROM Funcion WHERE id_funcion=?");
+            stFuncion.setInt(1, id);
+            int r = stFuncion.executeUpdate();
+            cn.commit();
+            return r > 0;
         } catch (SQLException e) {
+            if (cn != null) {
+                try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
             e.printStackTrace();
             return false;
+        } finally {
+            try { if (stCompra != null) stCompra.close(); } catch (SQLException e) { }
+            try { if (stFuncion != null) stFuncion.close(); } catch (SQLException e) { }
+            if (cn != null) {
+                try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
         }
     }
 
@@ -123,9 +143,9 @@ public class FuncionDaoImpl implements IFuncion {
     public List<Funcion> listarPorPelicula(int idPelicula) {
         List<Funcion> lista = new ArrayList<>();
         String sql = "SELECT f.id_funcion, f.id_pelicula, f.id_sala, "
-                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, "
+                   + "TO_CHAR(f.hora_inicio, 'YYYY-MM-DD\"T\"HH24:MI:SS') as hora_inicio, f.estado, f.activo, "
                    + "p.titulo, p.duracion_minutos, "
-                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad "
+                   + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total as sala_capacidad, s.activo as sala_activo "
                    + "FROM Funcion f "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
                    + "JOIN Sala s ON f.id_sala = s.id_sala WHERE f.id_pelicula=?";
@@ -141,6 +161,19 @@ public class FuncionDaoImpl implements IFuncion {
         return lista;
     }
 
+    @Override
+    public boolean toggleActivo(int id) {
+        String sql = "UPDATE Funcion SET activo = 1 - activo WHERE id_funcion=?";
+        try (Connection cn = ConexionSingleton.getConnection();
+             PreparedStatement st = cn.prepareStatement(sql)) {
+            st.setInt(1, id);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private Funcion mapping(ResultSet rs) throws SQLException {
         Pelicula pel = new Pelicula(
             rs.getInt("id_pelicula"),
@@ -151,14 +184,16 @@ public class FuncionDaoImpl implements IFuncion {
             rs.getInt("id_sala"),
             rs.getString("sala_nombre"),
             rs.getString("sala_tipo"),
-            rs.getInt("sala_capacidad")
+            rs.getInt("sala_capacidad"),
+            rs.getInt("sala_activo")
         );
         return new Funcion(
             rs.getInt("id_funcion"),
             pel,
             sala,
             rs.getString("hora_inicio"),
-            rs.getString("estado")
+            rs.getString("estado"),
+            rs.getInt("activo")
         );
     }
 }

@@ -10,4 +10,5 @@ public interface IProducto {
     public Producto searchById(int id);
     public boolean delete(int id);
     public List<Producto> listarActivos();
+    public boolean toggleActivo(int id);
 }

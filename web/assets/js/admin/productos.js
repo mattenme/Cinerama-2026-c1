@@ -1,7 +1,7 @@
 let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -50,29 +50,54 @@ let editandoId = null;
 
         function ocultarFormulario() { closeCrudModal(); }
 
+        var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
+
+        function actualizarPaginacion() {
+            var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+            var el;
+            if (el = document.getElementById('pagination-info')) el.textContent = 'Total: ' + totalItems + ' registros';
+            if (el = document.getElementById('pagination-page')) el.textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+            if (el = document.getElementById('btn-prev')) el.disabled = paginaActual <= 0;
+            if (el = document.getElementById('btn-next')) el.disabled = paginaActual >= totalPaginas - 1;
+        }
+
+        window.paginar = function(dir) {
+            var nueva = paginaActual + dir;
+            if (nueva < 0) return;
+            paginaActual = nueva;
+            cargarTabla();
+        };
+
         function cargarTabla() {
             const tbody = document.querySelector('#tabla tbody');
-            Api.producto.listar().then(lista => {
-                tbody.innerHTML = lista.map(p => {
+            Api.producto.listar().then(todas => {
+                totalItems = todas.length;
+                var items = todas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
+                tbody.innerHTML = items.map(p => {
                     const badgeCat = { Comida: 'bg-warning text-dark', Bebida: 'bg-info text-dark', Combo: 'bg-danger text-white' };
                     return `<tr>
                         <td>${p.id_producto}</td>
-                        <td>${p.imagen_url ? '<img src="' + p.imagen_url + '" alt="img" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.style.display=\'none\'">' : '<span class="text-muted">?</span>'}</td>
+                        <td>${p.imagen_url ? '<img src="' + p.imagen_url + '" alt="img" class="admin-img-thumb" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onclick="abrirLightbox(\'' + p.imagen_url.replace(/'/g, "\\'") + '\')" onerror="this.style.display=\'none\'">' : '<span class="text-muted">?</span>'}</td>
                         <td><strong>${p.nombre}</strong></td>
                         <td>${p.descripcion || '<span class="text-muted">?</span>'}</td>
                         <td><strong>S/ ${(p.precio || 0).toFixed(2)}</strong></td>
                         <td><span class="badge ${badgeCat[p.categoria] || 'bg-secondary'}">${p.categoria || '-'}</span></td>
-                        <td>${p.activo ? '<span class="text-success fw-bold">S&iacute;</span>' : '<span class="text-danger">No</span>'}</td>
+                        <td><span class="badge ${p.activo ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoProducto(${p.id_producto})">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${p.id_producto})">Editar</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${p.id_producto})">Eliminar</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${p.id_producto})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${p.id_producto})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
+                actualizarPaginacion();
             }).catch(() => {
                 tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Error al cargar</td></tr>';
             });
         }
+
+        window.toggleActivoProducto = function(id) {
+            Api.producto.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+            }
 
         function filtrarTabla() {
             var input = document.getElementById('buscador');

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch(API_URL + '/PeliculaController')
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(peliculas => {
+            peliculas = peliculas.filter(function(p) { return p.activo == 1; });
             const container = document.getElementById('cartelera-container');
             if (!peliculas || peliculas.length === 0) {
                 container.innerHTML = '<div class="col-12 text-center text-muted py-5"><h4>No hay pel\u00EDculas disponibles en cartelera</h4><p class="small">Agrega pel\u00EDculas desde el panel de administraci\u00F3n.</p></div>';
@@ -23,9 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${p.imagen_url ? '<img src="' + escapeHtml(p.imagen_url) + '" alt="' + escapeHtml(p.titulo) + '" class="movie-card-img">' : '<div class="display-1 mb-3">??</div>'}
                             <h3 class="card-title h4">${escapeHtml(p.titulo)}</h3>
                             <p class="card-text text-muted">${p.duracion_minutos || ''} min${p.genero ? ' ? ' + escapeHtml(p.genero) : ''}</p>
-                            <button class="btn btn-warning fw-bold mt-auto btn-select-movie" data-pelicula-id="${p.id_pelicula}" data-titulo="${escapeHtml(p.titulo)}">
-                                Seleccionar Asientos
-                            </button>
+                            <a href="detalle_pelicula.html?id=${p.id_pelicula}" class="btn btn-warning fw-bold mt-auto">
+                                Ver Detalle
+                            </a>
                         </div>
                     </div>
                 `;
@@ -38,38 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 });
 
-document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-select-movie');
-    if (!btn) return;
 
-    const peliculaId = btn.dataset.peliculaId;
-    const titulo = btn.dataset.titulo;
-
-    document.getElementById('funcionModalLabel').textContent = 'Horarios - ' + titulo;
-    const list = document.getElementById('funcion-list');
-    list.innerHTML = '<div class="text-center text-muted">Cargando horarios...</div>';
-
-    const modal = new bootstrap.Modal(document.getElementById('funcionModal'));
-    modal.show();
-
-    fetch(API_URL + '/FuncionController?idPelicula=' + peliculaId)
-        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(funciones => {
-            if (funciones.length === 0) {
-                list.innerHTML = '<div class="text-center text-muted">No hay horarios disponibles</div>';
-                return;
-            }
-            list.innerHTML = funciones.map(f => `
-                <button class="btn btn-outline-warning text-start py-3" onclick="location.href='asientos.html?id_funcion=${f.id_funcion}'">
-                    <strong>${f.sala ? f.sala.nombre : 'Sala'}</strong><br>
-                    <small>${formatFecha(f.hora_inicio)}</small>
-                </button>
-            `).join('');
-        })
-        .catch(() => {
-            list.innerHTML = '<div class="text-center text-danger">Error al cargar horarios</div>';
-        });
-});
 
 function formatFecha(dt) {
     if (!dt) return '';

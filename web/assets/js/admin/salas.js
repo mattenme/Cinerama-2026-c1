@@ -1,7 +1,7 @@
 let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -53,26 +53,51 @@ let editandoId = null;
             closeCrudModal();
         }
 
+        var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
+
+        function actualizarPaginacion() {
+            var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+            var el;
+            if (el = document.getElementById('pagination-info')) el.textContent = 'Total: ' + totalItems + ' registros';
+            if (el = document.getElementById('pagination-page')) el.textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+            if (el = document.getElementById('btn-prev')) el.disabled = paginaActual <= 0;
+            if (el = document.getElementById('btn-next')) el.disabled = paginaActual >= totalPaginas - 1;
+        }
+
+        window.paginar = function(dir) {
+            var nueva = paginaActual + dir;
+            if (nueva < 0) return;
+            paginaActual = nueva;
+            cargarTabla();
+        };
+
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-salas tbody');
-            Api.sala.listar().then(salas => {
-                tbody.innerHTML = salas.map(s => {
-                    const badgeTipo = { '2d': 'secondary', '3d': 'info', imax: 'dark', vip: 'warning' };
-                    const badge = badgeTipo[s.tipo] || 'secondary';
-                    return `<tr>
-                        <td>${s.id_sala}</td>
-                        <td><strong>${s.nombre}</strong></td>
-                        <td>${s.capacidad_total}</td>
-                        <td><span class="badge bg-${badge}">${(s.tipo || '-').toUpperCase()}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editarSala(${s.id_sala})">Editar</button>
-                            <a href="horarios.html?idSala=${s.id_sala}" class="btn btn-sm btn-outline-info">Horarios</a>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarSala(${s.id_sala})">Eliminar</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-            }).catch(() => {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Error al cargar</td></tr>';
+            Api.sala.listar().then(todas => {
+                totalItems = todas.length;
+                var items = todas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
+                try {
+                    tbody.innerHTML = items.map(s => {
+                        const badgeTipo = { '2d': 'secondary', '3d': 'info', imax: 'dark', vip: 'warning' };
+                        const badge = badgeTipo[s.tipo] || 'secondary';
+                        return `<tr>
+                            <td>${s.id_sala}</td>
+                            <td><strong>${s.nombre}</strong></td>
+                            <td>${s.capacidad_total}</td>
+                            <td><span class="badge bg-${badge}">${(s.tipo || '-').toUpperCase()}</span></td>
+                            <td><span class="badge ${s.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoSala(${s.id_sala})">${s.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editarSala(${s.id_sala})">${iconSVG('edit')}</button>
+                                <a href="horarios.html?idSala=${s.id_sala}" class="btn btn-sm btn-outline-info">${iconSVG('clock')}</a>
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarSala(${s.id_sala})">${iconSVG('trash')}</button>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                } catch (e) { console.error('Render error:', e, 'items:', JSON.stringify(items)); }
+                if (document.getElementById('pagination-info')) actualizarPaginacion();
+            }).catch(e => {
+                console.error('cargarTabla error:', e);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Error al cargar</td></tr>';
             });
         }
 
@@ -89,7 +114,7 @@ let editandoId = null;
             });
         }
 
-        function generarButacasPorCapacidad(idSala, capacidad) {
+        function generarAsientosPorCapacidad(idSala, capacidad) {
             var seatsPerRow = 10;
             var totalRows = Math.ceil(capacidad / seatsPerRow);
             var pendientes = 0;
@@ -102,7 +127,7 @@ let editandoId = null;
                     (function(fila, num) {
                         pendientes++;
                         var datos = { id_sala: idSala, fila: fila, numero: num, estado: 'Disponible' };
-                        Api.butaca.insertar(datos).then(function(resp) {
+                        Api.asiento.insertar(datos).then(function(resp) {
                             if (resp.success) created++;
                             else errores++;
                             pendientes--;
@@ -141,13 +166,13 @@ let editandoId = null;
 
                 var alumbre = function(idSala) {
                     if (!editandoId) {
-                        generarButacasPorCapacidad(idSala, capacidad);
+                        // Server already creates asientos via insertarConAsientos
                     } else {
-                        fetch(API_URL + '/ButacaController?idSala=' + idSala)
+                        fetch(API_URL + '/AsientoController?idSala=' + idSala)
                             .then(function(resp) { if (!resp.ok) throw new Error('HTTP ' + resp.status); return resp.json(); })
                             .then(function(existentes) {
                                 if (existentes.length < capacidad) {
-                                    generarButacasPorCapacidad(idSala, capacidad - existentes.length);
+                                    generarAsientosPorCapacidad(idSala, capacidad - existentes.length);
                                 }
                             })
                             .catch(function() {});
@@ -175,9 +200,16 @@ let editandoId = null;
             }).catch(function() { showError('Error de conexi\u00F3n'); });
         };
 
+        window.toggleActivoSala = function(id) {
+            Api.sala.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
+        };
+
         window.eliminarSala = function(id) {
-            showConfirm('\u00BFEliminar sala #' + id + '?', function() {
-                Api.sala.eliminar(id).then(function(r) { if (r.success) cargarTabla(); });
+            showConfirm('\u00BFEliminar sala #' + id + ' (y todos sus asientos, horarios y compras relacionadas)?', function() {
+                Api.sala.eliminar(id).then(function(r) {
+                    if (r.success) cargarTabla();
+                    else showError(r.mensaje || 'Error al eliminar');
+                }).catch(function(e) { showError('Error de conexi\u00F3n: ' + e.message); });
             });
         };
 

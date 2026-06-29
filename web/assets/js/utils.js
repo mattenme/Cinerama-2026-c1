@@ -47,25 +47,48 @@
     window.showInfo = function(m) { showToast(m,'info'); };
 })();
 
+function setLoading(btn, loading) {
+    if (!btn) return;
+    if (loading) {
+        btn.disabled = true;
+        btn._origHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Cargando...';
+    } else {
+        btn.disabled = false;
+        if (btn._origHtml) btn.innerHTML = btn._origHtml;
+    }
+}
+
+function setActiveNavLink() {
+    var path = window.location.pathname;
+    document.querySelectorAll('.navbar-nav .nav-link').forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path || (path === '/Cinerama_1/' && link.getAttribute('href') === '/Cinerama_1/index.html')) link.classList.add('active');
+    });
+}
+
 (function() {
     var spinnerHtml = '<div class="text-center py-5"><div class="spinner-border text-warning" role="status" style="width:3rem;height:3rem;"><span class="visually-hidden">Cargando...</span></div><p class="text-muted mt-2">Cargando...</p></div>';
     window.mostrarSpinner = function(id) { var el = document.getElementById(id); if (el) el.innerHTML = spinnerHtml; };
     window.ocultarSpinner = function(id) { };
 })();
 
-(function() {
-    window.showConfirm = function(msg, onConfirm) {
-        var existing = document.getElementById('confirm-modal');
-        if (existing) existing.remove();
-        var modal = document.createElement('div');
-        modal.id = 'confirm-modal';
-        modal.className = 'modal fade';
-        modal.setAttribute('tabindex','-1');
-        modal.innerHTML = '<div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Confirmar</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="mb-0">' + msg + '</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-warning" id="confirm-yes">S\u00ED, continuar</button></div></div></div>';
-        document.body.appendChild(modal);
-        var bsModal = new bootstrap.Modal(modal);
-        bsModal.show();
-        document.getElementById('confirm-yes').addEventListener('click', function() { bsModal.hide(); if (onConfirm) onConfirm(); });
-        modal.addEventListener('hidden.bs.modal', function() { modal.remove(); });
-    };
-})();
+window.showConfirm = function(msg, onConfirm) {
+    var d = document.getElementById('confirm-dialog');
+    if (d) d.remove();
+    d = document.createElement('div');
+    d.id = 'confirm-dialog';
+    d.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);';
+    d.innerHTML = '<div style="background:#1e1e2e;color:#fff;border-radius:12px;padding:24px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;">' +
+        '<h5 class="mb-3" style="margin:0 0 12px 0;font-size:1.1rem;">Confirmar</h5>' +
+        '<p class="mb-4" style="margin:0 0 20px 0;color:#aaa;">' + msg + '</p>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button id="confirm-no" style="padding:8px 20px;border-radius:6px;border:1px solid #444;background:transparent;color:#fff;cursor:pointer;">Cancelar</button>' +
+        '<button id="confirm-yes" style="padding:8px 20px;border-radius:6px;border:none;background:#ffc107;color:#000;font-weight:600;cursor:pointer;">S\u00ED, continuar</button>' +
+        '</div></div>';
+    document.body.appendChild(d);
+    d.addEventListener('click', function(e) { if (e.target === d) cerrarConfirm(); });
+    document.getElementById('confirm-yes').addEventListener('click', function() { cerrarConfirm(); if (onConfirm) onConfirm(); });
+    document.getElementById('confirm-no').addEventListener('click', cerrarConfirm);
+    function cerrarConfirm() { if (d.parentNode) d.remove(); }
+};

@@ -1,5 +1,5 @@
 var selectedMethod = null;
-var _seats = '', _total = '0', _food = '', _grandTotal = '0', _idFuncion = '', _idButaca = '';
+var _seats = '', _total = '0', _food = '', _grandTotal = '0', _idFuncion = '', _idAsiento = '';
 var _descuento = 0;
 
 (function() {
@@ -9,7 +9,7 @@ var _descuento = 0;
     _food = urlParams.get('food') || '';
     _grandTotal = urlParams.get('grandTotal') || _total;
     _idFuncion = urlParams.get('id_funcion') || '';
-    _idButaca = urlParams.get('id_butaca') || '';
+    _idAsiento = urlParams.get('id_asiento') || '';
 
     document.getElementById('summary-seats').textContent = _seats;
     document.getElementById('summary-tickets').textContent = '$' + _total;
@@ -114,6 +114,10 @@ function procesarPago() {
     }
     if (!validarCampos()) return;
 
+    var btnPagar = document.querySelector('.btn-warning');
+    if (btnPagar && btnPagar.disabled) return;
+    setLoading(btnPagar, true);
+
     var clienteId = localStorage.getItem('clienteId');
 
     var precioFinal = parseFloat(_grandTotal);
@@ -125,12 +129,12 @@ function procesarPago() {
     params.append('action', 'insertar');
     if (clienteId) params.append('id_cliente', clienteId);
     if (_idFuncion) params.append('id_funcion', _idFuncion);
-    var butacaIds = _idButaca.split(',').filter(function(b) { return b; });
-    if (butacaIds.length === 0) {
-        showError('Error: no se encontraron butacas seleccionadas. Vuelve a la cartelera.');
+    var asientoIds = _idAsiento.split(',').filter(function(b) { return b; });
+    if (asientoIds.length === 0) {
+        showError('Error: no se encontraron asientos seleccionados. Vuelve a la cartelera.');
         return;
     }
-    params.append('id_butaca', butacaIds.join(','));
+    params.append('id_asiento', asientoIds.join(','));
     params.append('precio', precioFinal.toFixed(2));
     var metodoMap = { 'visa': 'Tarjeta Visa', 'mastercard': 'Tarjeta Mastercard', 'yape': 'Yape', 'plin': 'Plin', 'efectivo': 'Efectivo' };
     params.append('metodo_pago', metodoMap[selectedMethod] || selectedMethod);
@@ -163,10 +167,12 @@ function procesarPago() {
             showSuccess('\u00A1Pago exitoso! Disfruta tu pel\u00EDcula.');
             setTimeout(function() { window.location.href = 'index.html'; }, 2000);
         } else {
+            setLoading(btnPagar, false);
             showError(data.mensaje || 'Error al procesar el pago');
         }
     })
     .catch(function(err) {
+        setLoading(btnPagar, false);
         showError('Error de conexi\u00F3n con el servidor. Intenta nuevamente.');
         console.error('Error al procesar pago:', err);
     });

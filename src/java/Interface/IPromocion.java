@@ -10,4 +10,5 @@ public interface IPromocion {
     public int insertar(Promocion p);
     public int actualizar(Promocion p);
     public int eliminar(int id);
+    public boolean toggleActivo(int id);
 }

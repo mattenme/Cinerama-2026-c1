@@ -116,7 +116,7 @@ public class IncidenciaDaoImpl implements IIncidencia {
         Sala sala = null;
         try { if (rs.getObject("id_sala") != null) {
             sala = new Sala(rs.getInt("id_sala"), rs.getString("sala_nombre"),
-                rs.getString("sala_tipo"), rs.getInt("capacidad_total"));
+                rs.getString("sala_tipo"), rs.getInt("capacidad_total"), 1);
         }} catch (SQLException e) { e.printStackTrace(); }
         Funcion fun = null;
         try { if (rs.getObject("id_funcion") != null) {
@@ -126,7 +126,7 @@ public class IncidenciaDaoImpl implements IIncidencia {
                     rs.getInt("duracion_minutos"));
             }} catch (SQLException e) { e.printStackTrace(); }
             fun = new Funcion(rs.getInt("id_funcion"), pel, sala,
-                rs.getString("hora_inicio"), rs.getString("fun_estado"));
+                rs.getString("hora_inicio"), rs.getString("fun_estado"), 1);
         }} catch (SQLException e) { e.printStackTrace(); }
         Cliente cli = null;
         try { if (rs.getObject("id_cliente") != null) {

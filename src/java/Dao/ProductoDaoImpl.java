@@ -81,7 +81,33 @@ public class ProductoDaoImpl implements IProducto {
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM Producto WHERE id_producto=?";
+        Connection cn = null;
+        PreparedStatement st = null;
+        try {
+            cn = ConexionSingleton.getConnection();
+            cn.setAutoCommit(false);
+            st = cn.prepareStatement("DELETE FROM Producto WHERE id_producto=?");
+            st.setInt(1, id);
+            int r = st.executeUpdate();
+            cn.commit();
+            return r > 0;
+        } catch (SQLException e) {
+            if (cn != null) {
+                try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { if (st != null) st.close(); } catch (SQLException e) { }
+            if (cn != null) {
+                try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+    }
+
+    @Override
+    public boolean toggleActivo(int id) {
+        String sql = "UPDATE Producto SET activo = 1 - activo WHERE id_producto=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, id);

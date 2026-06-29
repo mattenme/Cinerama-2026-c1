@@ -9,21 +9,22 @@ public class Pelicula {
     private String sinopsis;
     private String imagen_url;
     private int destacado;
+    private int activo;
 
     public Pelicula() {
     }
 
     public Pelicula(int id_pelicula, String titulo, int duracion_minutos) {
-        this(id_pelicula, titulo, duracion_minutos, null, null, null, 0);
+        this(id_pelicula, titulo, duracion_minutos, null, null, null, 0, 1);
     }
 
     public Pelicula(int id_pelicula, String titulo, int duracion_minutos,
             String genero, String sinopsis, String imagen_url) {
-        this(id_pelicula, titulo, duracion_minutos, genero, sinopsis, imagen_url, 0);
+        this(id_pelicula, titulo, duracion_minutos, genero, sinopsis, imagen_url, 0, 1);
     }
 
     public Pelicula(int id_pelicula, String titulo, int duracion_minutos,
-            String genero, String sinopsis, String imagen_url, int destacado) {
+            String genero, String sinopsis, String imagen_url, int destacado, int activo) {
         this.id_pelicula = id_pelicula;
         this.titulo = titulo;
         this.duracion_minutos = duracion_minutos;
@@ -31,6 +32,7 @@ public class Pelicula {
         this.sinopsis = sinopsis;
         this.imagen_url = imagen_url;
         this.destacado = destacado;
+        this.activo = activo;
     }
 
     public int getId_pelicula() { return id_pelicula; }
@@ -53,4 +55,7 @@ public class Pelicula {
 
     public int getDestacado() { return destacado; }
     public void setDestacado(int destacado) { this.destacado = destacado; }
+
+    public int getActivo() { return activo; }
+    public void setActivo(int activo) { this.activo = activo; }
 }

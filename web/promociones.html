@@ -27,67 +27,10 @@
     <main class="container my-5">
         <h2 class="text-center mb-5 display-5 fw-bold">Promociones y Ofertas</h2>
         <p class="text-center text-muted mb-5">Toca una promoci&oacute;n para revelar su c&oacute;digo de descuento</p>
-        <div class="row g-4" id="promo-grid">
-            <div class="col-md-6 col-lg-3 promo-card-wrapper" data-codigo="ESTUDIANTE30" data-descuento="30">
-                <div class="card border-0 shadow-sm h-100 promo-card" style="border-left: 5px solid #ffcc00 !important;">
-                    <div class="card-body text-center">
-                        <h3 class="card-title h5">Entrada de Estudiante</h3>
-                        <p class="promo-discount display-6 fw-bold text-warning my-3">30% Descuento</p>
-<p class="card-text text-muted">Presentar carn&eacute; vigente de estudiante</p>
-                        <p class="text-success fw-bold small">V&aacute;lido todo el a&ntilde;o</p>
-                        <div class="promo-code">
-                            <code>ESTUDIANTE30</code>
-                            <button class="copy-btn" onclick="copiarCodigo(this,'ESTUDIANTE30')"><i class="bi bi-clipboard"></i> Copiar</button>
-                        </div>
-                        <span class="promo-click-hint">Toca para ver c&oacute;digo</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3 promo-card-wrapper" data-codigo="MARTES2X1" data-descuento="50">
-                <div class="card border-0 shadow-sm h-100 promo-card" style="border-left: 5px solid #ffcc00 !important;">
-                    <div class="card-body text-center">
-                        <h3 class="card-title h5">Martes de Cine</h3>
-                        <p class="promo-discount display-6 fw-bold text-warning my-3">2x1</p>
-                        <p class="card-text text-muted">Compra 2 entradas, paga 1</p>
-                        <p class="text-success fw-bold small">Todos los martes</p>
-                        <div class="promo-code">
-                            <code>MARTES2X1</code>
-                            <button class="copy-btn" onclick="copiarCodigo(this,'MARTES2X1')"><i class="bi bi-clipboard"></i> Copiar</button>
-                        </div>
-                        <span class="promo-click-hint">Toca para ver c&oacute;digo</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3 promo-card-wrapper" data-codigo="COMBO20" data-descuento="20">
-                <div class="card border-0 shadow-sm h-100 promo-card" style="border-left: 5px solid #ffcc00 !important;">
-                    <div class="card-body text-center">
-                        <h3 class="card-title h5">Combo Familiar</h3>
-                        <p class="promo-discount display-6 fw-bold text-warning my-3">20% Descuento</p>
-                        <p class="card-text text-muted">4 entradas + 4 combos snacks</p>
-                        <p class="text-success fw-bold small">Disponible en fin de semana</p>
-                        <div class="promo-code">
-                            <code>COMBO20</code>
-                            <button class="copy-btn" onclick="copiarCodigo(this,'COMBO20')"><i class="bi bi-clipboard"></i> Copiar</button>
-                        </div>
-                        <span class="promo-click-hint">Toca para ver c&oacute;digo</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3 promo-card-wrapper" data-codigo="SANVALENTIN" data-descuento="50">
-                <div class="card border-0 shadow-sm h-100 promo-card" style="border-left: 5px solid #ffcc00 !important;">
-                    <div class="card-body text-center">
-                        <h3 class="card-title h5">D&iacute;a de San Valent&iacute;n</h3>
-                        <p class="promo-discount display-6 fw-bold text-warning my-3">2x1</p>
-                        <p class="card-text text-muted">Compra 2 entradas, paga 1</p>
-                        <p class="text-success fw-bold small">Solo 14 de febrero</p>
-                        <div class="promo-code">
-                            <code>SANVALENTIN</code>
-                            <button class="copy-btn" onclick="copiarCodigo(this,'SANVALENTIN')"><i class="bi bi-clipboard"></i> Copiar</button>
-                        </div>
-                        <span class="promo-click-hint">Toca para ver c&oacute;digo</span>
-                    </div>
-                </div>
-            </div>
+        <div class="row g-4" id="promo-grid"></div>
+        <div id="promo-empty" class="text-center text-muted py-5 d-none">
+            <i class="bi bi-ticket-perforated display-1"></i>
+            <p class="mt-3 fs-5">No hay promociones disponibles en este momento</p>
         </div>
     </main>
 
@@ -97,20 +40,45 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('includes/header.html')
-                .then(function(r) { return r.text(); })
-                .then(function(data) {
-                    document.getElementById('header-placeholder').innerHTML = data;
+            Promise.all([
+                fetch('includes/header.html').then(function(r) { return r.text(); }).then(function(d) {
+                    document.getElementById('header-placeholder').innerHTML = d;
                     setActiveNavLink();
+                }),
+                fetch('includes/footer.html').then(function(r) { return r.text(); }).then(function(d) {
+                    document.getElementById('footer-placeholder').innerHTML = d;
+                }),
+                fetch(API_URL + '/PromocionController').then(function(r) { return r.json(); }).then(function(lista) {
+                    var grid = document.getElementById('promo-grid');
+                    var empty = document.getElementById('promo-empty');
+                    if (!lista || lista.length === 0) {
+                        grid.classList.add('d-none');
+                        empty.classList.remove('d-none');
+                        return;
+                    }
+                    grid.innerHTML = lista.filter(function(p) { return p.activo == 1; }).map(function(p) {
+                        var descuento = p.descuento + '% Descuento';
+                        var badge = '<span class="text-success fw-bold small">V\u00e1lido</span>';
+                        return '<div class="col-md-6 col-lg-3 promo-card-wrapper" data-codigo="' + p.codigo + '" data-descuento="' + p.descuento + '">' +
+                            '<div class="card border-0 shadow-sm h-100 promo-card" style="border-left: 5px solid #ffcc00 !important;">' +
+                                '<div class="card-body text-center">' +
+                                    '<h3 class="card-title h5">' + p.codigo + '</h3>' +
+                                    '<p class="promo-discount display-6 fw-bold text-warning my-3">' + descuento + '</p>' +
+                                    '<p class="card-text text-muted">' + (p.descripcion || '') + '</p>' +
+                                    badge +
+                                    '<div class="promo-code">' +
+                                        '<code>' + p.codigo + '</code>' +
+                                        '<button class="copy-btn" onclick="copiarCodigo(this,\'' + p.codigo + '\')"><i class="bi bi-clipboard"></i> Copiar</button>' +
+                                    '</div>' +
+                                    '<span class="promo-click-hint">Toca para ver c\u00f3digo</span>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    }).join('');
+                }).catch(function() {
+                    document.getElementById('promo-grid').innerHTML = '<div class="col-12 text-center text-muted py-5">Error al cargar promociones</div>';
                 })
-                .catch(function(e) { console.error('Error cargando header:', e); });
-
-            fetch('includes/footer.html')
-                .then(function(r) { return r.text(); })
-                .then(function(data) {
-                    document.getElementById('footer-placeholder').innerHTML = data;
-                })
-                .catch(function(e) { console.error('Error cargando footer:', e); });
+            ]).catch(function(e) { console.error('Error:', e); });
 
             document.getElementById('promo-grid').addEventListener('click', function(e) {
                 var wrapper = e.target.closest('.promo-card-wrapper');
@@ -120,18 +88,10 @@
                 if (codeDiv) {
                     var wasRevealed = codeDiv.classList.contains('revealed');
                     codeDiv.classList.toggle('revealed');
-                    if (hint) hint.textContent = wasRevealed ? 'Toca para ver c&oacute;digo' : 'C&oacute;digo revelado';
+                    if (hint) hint.textContent = wasRevealed ? 'Toca para ver c\u00f3digo' : 'C\u00f3digo revelado';
                 }
             });
         });
-
-        function setActiveNavLink() {
-            var path = window.location.pathname;
-            document.querySelectorAll('.navbar-nav .nav-link').forEach(function(link) {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === path || (path === '/Cinerama_1/' && link.getAttribute('href') === '/Cinerama_1/index.html')) link.classList.add('active');
-            });
-        }
 
         function copiarCodigo(btn, codigo) {
             navigator.clipboard.writeText(codigo).then(function() {
@@ -142,7 +102,7 @@
                     btn.classList.remove('copied');
                 }, 2000);
             }).catch(function() {
-                alert('No se pudo copiar. C&oacute;digo: ' + codigo);
+                alert('No se pudo copiar. C\u00f3digo: ' + codigo);
             });
         }
     </script>

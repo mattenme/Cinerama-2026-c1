@@ -16,13 +16,13 @@ public class CompraDaoImpl implements ICompra {
                    + "f.id_pelicula, f.id_sala, f.hora_inicio, f.estado as fun_estado, "
                    + "p.titulo, p.duracion_minutos, "
                    + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, "
-                   + "b.fila, b.numero, b.estado as but_estado "
+                   + "a.id_asiento, a.fila, a.numero, a.estado as asi_estado "
                    + "FROM Compra c "
                    + "JOIN Cliente cl ON c.id_cliente = cl.id_cliente "
                    + "JOIN Funcion f ON c.id_funcion = f.id_funcion "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
                    + "JOIN Sala s ON f.id_sala = s.id_sala "
-                   + "JOIN Butaca b ON c.id_butaca = b.id_butaca";
+                   + "JOIN Asiento a ON c.id_asiento = a.id_asiento";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql);
              ResultSet rs = st.executeQuery()) {
@@ -37,7 +37,7 @@ public class CompraDaoImpl implements ICompra {
 
     @Override
     public int insertar(Compra compra) {
-        String sql = "INSERT INTO Compra (id_cliente, id_funcion, id_butaca, precio, metodo_pago, estado, codigo_qr, productos) "
+        String sql = "INSERT INTO Compra (id_cliente, id_funcion, id_asiento, precio, metodo_pago, estado, codigo_qr, productos) "
                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Connection cn = null;
         PreparedStatement st = null;
@@ -46,10 +46,17 @@ public class CompraDaoImpl implements ICompra {
         try {
             cn = ConexionSingleton.getConnection();
             cn.setAutoCommit(false);
+            up = cn.prepareStatement("UPDATE Asiento SET estado='Vendida' WHERE id_asiento=? AND estado IN ('Disponible','Seleccionada')");
+            up.setInt(1, compra.getAsiento().getId_asiento());
+            int rows = up.executeUpdate();
+            if (rows == 0) {
+                throw new SQLException("El asiento no est\u00E1 disponible");
+            }
+            up.close();
             st = cn.prepareStatement(sql, new String[]{"id_compra"});
             st.setInt(1, compra.getCliente().getId_cliente());
             st.setInt(2, compra.getFuncion().getId_funcion());
-            st.setInt(3, compra.getButaca().getId_butaca());
+                st.setInt(3, compra.getAsiento().getId_asiento());
             st.setDouble(4, compra.getPrecio());
             st.setString(5, compra.getMetodo_pago());
             st.setString(6, compra.getEstado());
@@ -62,13 +69,6 @@ public class CompraDaoImpl implements ICompra {
             }
             int id = rs.getInt(1);
             rs.close();
-            up = cn.prepareStatement("UPDATE Butaca SET estado='Vendida' WHERE id_butaca=? AND estado IN ('Disponible','Seleccionada')");
-            up.setInt(1, compra.getButaca().getId_butaca());
-            int rows = up.executeUpdate();
-            if (rows == 0) {
-                throw new SQLException("La butaca ya est\u00E1 vendida o fue tomada por otro usuario");
-            }
-            up.close();
             cn.commit();
             return id;
         } catch (SQLException e) {
@@ -98,15 +98,21 @@ public class CompraDaoImpl implements ICompra {
             cn = ConexionSingleton.getConnection();
             cn.setAutoCommit(false);
             st = cn.prepareStatement(
-                "INSERT INTO Compra (id_cliente, id_funcion, id_butaca, precio, metodo_pago, estado, codigo_qr, productos) "
+                "INSERT INTO Compra (id_cliente, id_funcion, id_asiento, precio, metodo_pago, estado, codigo_qr, productos) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 new String[]{"id_compra"}
             );
-            up = cn.prepareStatement("UPDATE Butaca SET estado='Vendida' WHERE id_butaca=? AND estado IN ('Disponible','Seleccionada')");
+            up = cn.prepareStatement("UPDATE Asiento SET estado='Vendida' WHERE id_asiento=? AND estado IN ('Disponible','Seleccionada')");
             for (Compra compra : compras) {
+                up.setInt(1, compra.getAsiento().getId_asiento());
+                int rows = up.executeUpdate();
+                if (rows == 0) {
+                    throw new SQLException("El asiento " + compra.getAsiento().getId_asiento() + " no est\u00E1 disponible");
+                }
+                // Luego insertar la compra
                 st.setInt(1, compra.getCliente().getId_cliente());
                 st.setInt(2, compra.getFuncion().getId_funcion());
-                st.setInt(3, compra.getButaca().getId_butaca());
+            st.setInt(3, compra.getAsiento().getId_asiento());
                 st.setDouble(4, compra.getPrecio());
                 st.setString(5, compra.getMetodo_pago());
                 st.setString(6, compra.getEstado());
@@ -119,11 +125,6 @@ public class CompraDaoImpl implements ICompra {
                 }
                 lastId = rs.getInt(1);
                 rs.close();
-                up.setInt(1, compra.getButaca().getId_butaca());
-                int rows = up.executeUpdate();
-                if (rows == 0) {
-                    throw new SQLException("La butaca " + compra.getButaca().getId_butaca() + " ya est\u00E1 vendida");
-                }
             }
             cn.commit();
             return lastId;
@@ -132,6 +133,7 @@ public class CompraDaoImpl implements ICompra {
             if (cn != null) {
                 try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
+            throw new RuntimeException("Error al procesar la compra: " + e.getMessage(), e);
         } finally {
             try { if (rs != null) rs.close(); } catch (SQLException e) { }
             try { if (st != null) st.close(); } catch (SQLException e) { }
@@ -140,7 +142,6 @@ public class CompraDaoImpl implements ICompra {
                 try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
             }
         }
-        return 0;
     }
 
     @Override
@@ -150,13 +151,13 @@ public class CompraDaoImpl implements ICompra {
                    + "f.id_pelicula, f.id_sala, f.hora_inicio, f.estado as fun_estado, "
                    + "p.titulo, p.duracion_minutos, "
                    + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, "
-                   + "b.fila, b.numero, b.estado as but_estado "
+                   + "a.id_asiento, a.fila, a.numero, a.estado as asi_estado "
                    + "FROM Compra c "
                    + "JOIN Cliente cl ON c.id_cliente = cl.id_cliente "
                    + "JOIN Funcion f ON c.id_funcion = f.id_funcion "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
                    + "JOIN Sala s ON f.id_sala = s.id_sala "
-                   + "JOIN Butaca b ON c.id_butaca = b.id_butaca WHERE c.id_compra=?";
+                   + "JOIN Asiento a ON c.id_asiento = a.id_asiento WHERE c.id_compra=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, id);
@@ -191,13 +192,13 @@ public class CompraDaoImpl implements ICompra {
                    + "f.id_pelicula, f.id_sala, f.hora_inicio, f.estado as fun_estado, "
                    + "p.titulo, p.duracion_minutos, "
                    + "s.nombre as sala_nombre, s.tipo as sala_tipo, s.capacidad_total, "
-                   + "b.fila, b.numero, b.estado as but_estado "
+                   + "a.id_asiento, a.fila, a.numero, a.estado as asi_estado "
                    + "FROM Compra c "
                    + "JOIN Cliente cl ON c.id_cliente = cl.id_cliente "
                    + "JOIN Funcion f ON c.id_funcion = f.id_funcion "
                    + "JOIN Pelicula p ON f.id_pelicula = p.id_pelicula "
                    + "JOIN Sala s ON f.id_sala = s.id_sala "
-                   + "JOIN Butaca b ON c.id_butaca = b.id_butaca WHERE c.id_cliente=?";
+                   + "JOIN Asiento a ON c.id_asiento = a.id_asiento WHERE c.id_cliente=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, idCliente);
@@ -229,27 +230,29 @@ public class CompraDaoImpl implements ICompra {
             rs.getInt("id_sala"),
             rs.getString("sala_nombre"),
             rs.getString("sala_tipo"),
-            rs.getInt("capacidad_total")
+            rs.getInt("capacidad_total"),
+            1
         );
         Funcion fun = new Funcion(
             rs.getInt("id_funcion"),
             pel,
             sala,
             rs.getString("hora_inicio"),
-            rs.getString("fun_estado")
+            rs.getString("fun_estado"),
+            1
         );
-        Butaca but = new Butaca(
-            rs.getInt("id_butaca"),
+        Asiento a = new Asiento(
+            rs.getInt("id_asiento"),
             sala,
             rs.getString("fila"),
             rs.getInt("numero"),
-            rs.getString("but_estado")
+            rs.getString("asi_estado")
         );
         Compra c = new Compra(
             rs.getInt("id_compra"),
             cli,
             fun,
-            but,
+            a,
             rs.getDouble("precio"),
             rs.getString("metodo_pago"),
             rs.getString("estado"),

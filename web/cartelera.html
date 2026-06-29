@@ -20,21 +20,6 @@
         </div>
     </main>
 
-    <!-- Modal selecci?n de horarios -->
-    <div class="modal fade" id="funcionModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="funcionModalLabel">Seleccionar Horario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="funcion-list" class="d-grid gap-2"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="footer-placeholder"></div>
 
     <script src="assets/js/config.js"></script>
@@ -49,7 +34,6 @@
                     setActiveNavLink();
                 })
                 .catch(error => console.error('Error cargando header:', error));
-
             fetch('includes/footer.html')
                 .then(response => response.text())
                 .then(data => {
@@ -57,14 +41,6 @@
                 })
                 .catch(error => console.error('Error cargando footer:', error));
         });
-
-        function setActiveNavLink() {
-            var path = window.location.pathname;
-            document.querySelectorAll('.navbar-nav .nav-link').forEach(function(link) {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === path || (path === '/Cinerama_1/' && link.getAttribute('href') === '/Cinerama_1/index.html')) link.classList.add('active');
-            });
-        }
     </script>
 <script src="assets/js/utils.js"></script><script src="assets/js/header-auth.js"></script><script src="assets/js/darkmode.js"></script></body>
 </html>

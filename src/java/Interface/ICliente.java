@@ -10,4 +10,9 @@ public interface ICliente {
     public Cliente searchById(int id);
     public boolean delete(int id);
     public Cliente searchByDni(String dni);
+    public Cliente autenticar(String dni, String contrasena);
+    public boolean toggleActivo(int id);
+    public boolean guardarCodigoVerificacion(int idCliente, String codigo);
+    public boolean verificarCliente(int idCliente);
+    public boolean existeAdmin();
 }

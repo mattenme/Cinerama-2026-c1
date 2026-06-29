@@ -51,7 +51,8 @@ public class SalaController extends HttpServlet {
                 s.setNombre(nombre);
                 s.setTipo(req.getParameter("tipo"));
                 s.setCapacidad_total(Integer.parseInt(req.getParameter("capacidad_total")));
-                int salaId = salaDao.insertarConButacas(s, 10);
+                s.setActivo(1);
+                int salaId = salaDao.insertarConAsientos(s, 10);
                 if (salaId > 0) {
                     s.setId_sala(salaId);
                     ok = true;
@@ -64,6 +65,8 @@ public class SalaController extends HttpServlet {
                     s.setCapacidad_total(Integer.parseInt(req.getParameter("capacidad_total")));
                     ok = salaDao.update(s);
                 }
+            } else if ("toggleActivo".equals(action)) {
+                ok = salaDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {
                     resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
@@ -79,6 +82,6 @@ public class SalaController extends HttpServlet {
             e.printStackTrace();
             return;
         }
-        resp.getWriter().write("{\"success\":" + ok + "}");
+        resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "\"}");
     }
 }

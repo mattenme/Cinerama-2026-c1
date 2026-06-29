@@ -33,9 +33,22 @@ public class PeliculaController extends HttpServlet {
             if (id != null) {
                 Pelicula p = peliculaDao.searchById(Integer.parseInt(id));
                 resp.getWriter().write(gson.toJson(p));
-            } else {
-                resp.getWriter().write(gson.toJson(peliculaDao.lista()));
+                return;
             }
+
+            String startStr = req.getParameter("start");
+            String limitStr = req.getParameter("limit");
+            if (startStr != null && limitStr != null) {
+                int start = Integer.parseInt(startStr);
+                int limit = Integer.parseInt(limitStr);
+                var map = new java.util.HashMap<String, Object>();
+                map.put("data", peliculaDao.listaPaginada(start, limit));
+                map.put("total", peliculaDao.contar());
+                resp.getWriter().write(gson.toJson(map));
+                return;
+            }
+
+            resp.getWriter().write(gson.toJson(peliculaDao.lista()));
         } catch (NumberFormatException e) {
             resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID inv\u00e1lido\"}");
         } catch (Exception e) {
@@ -62,6 +75,7 @@ public class PeliculaController extends HttpServlet {
                 p.setImagen_url(img != null ? img : req.getParameter("imagen_url"));
                 String dest = req.getParameter("destacado");
                 p.setDestacado(dest != null ? Integer.parseInt(dest) : 0);
+                p.setActivo(1);
                 ok = peliculaDao.insertar(p);
             } else if ("update".equals(action)) {
                 Pelicula p = peliculaDao.searchById(Integer.parseInt(req.getParameter("id")));
@@ -81,7 +95,7 @@ public class PeliculaController extends HttpServlet {
                 }
             } else if ("delete".equals(action)) {
                 if (!utils.AuthUtil.esAdmin(req)) {
-                    resp.getWriter().write("{\"success\":false,\"error\":\"No autorizado\"}");
+                    resp.getWriter().write("{\"success\":false,\"mensaje\":\"No autorizado\"}");
                     return;
                 }
                 Pelicula p = peliculaDao.searchById(Integer.parseInt(req.getParameter("id")));
@@ -89,13 +103,19 @@ public class PeliculaController extends HttpServlet {
                     ok = peliculaDao.delete(p.getId_pelicula());
                     if (ok) borrarImagenAnterior(p.getImagen_url(), req);
                 }
+            } else if ("toggleDestacado".equals(action)) {
+                ok = peliculaDao.toggleDestacado(Integer.parseInt(req.getParameter("id")));
+            } else if ("toggleActivo".equals(action)) {
+                ok = peliculaDao.toggleActivo(Integer.parseInt(req.getParameter("id")));
             }
-            resp.getWriter().write("{\"success\":" + ok + "}");
+            if (!resp.isCommitted()) {
+                resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "\"}");
+            }
         } catch (NumberFormatException e) {
-            resp.getWriter().write("{\"success\":false,\"error\":\"ID o duraci\u00f3n inv\u00e1lido\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":\"ID o duraci\u00f3n inv\u00e1lido\"}");
         } catch (Exception e) {
             e.printStackTrace();
-            resp.getWriter().write("{\"success\":false,\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}");
+            if (!resp.isCommitted()) resp.getWriter().write("{\"success\":false,\"mensaje\":" + gson.toJson(e.getMessage() != null ? e.getMessage() : "Error") + "}");
         }
     }
 

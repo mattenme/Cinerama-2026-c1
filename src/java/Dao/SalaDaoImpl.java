@@ -26,12 +26,13 @@ public class SalaDaoImpl implements ISala {
 
     @Override
     public int insertar(Sala sala) {
-        String sql = "INSERT INTO Sala (nombre, tipo, capacidad_total) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Sala (nombre, tipo, capacidad_total, activo) VALUES (?, ?, ?, ?)";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql, new String[]{"id_sala"})) {
             st.setString(1, sala.getNombre());
             st.setString(2, sala.getTipo());
             st.setInt(3, sala.getCapacidad_total());
+            st.setInt(4, sala.getActivo());
             int affected = st.executeUpdate();
             if (affected > 0) {
                 try (ResultSet rs = st.getGeneratedKeys()) {
@@ -46,21 +47,22 @@ public class SalaDaoImpl implements ISala {
     }
 
     @Override
-    public int insertarConButacas(Sala sala, int columnas) {
+    public int insertarConAsientos(Sala sala, int columnas) {
         Connection cn = null;
         PreparedStatement stSala = null;
-        PreparedStatement stButaca = null;
+        PreparedStatement stAsiento = null;
         ResultSet rs = null;
         try {
             cn = ConexionSingleton.getConnection();
             cn.setAutoCommit(false);
             stSala = cn.prepareStatement(
-                "INSERT INTO Sala (nombre, tipo, capacidad_total) VALUES (?, ?, ?)",
+                "INSERT INTO Sala (nombre, tipo, capacidad_total, activo) VALUES (?, ?, ?, ?)",
                 new String[]{"id_sala"}
             );
             stSala.setString(1, sala.getNombre());
             stSala.setString(2, sala.getTipo());
             stSala.setInt(3, sala.getCapacidad_total());
+            stSala.setInt(4, sala.getActivo());
             int affected = stSala.executeUpdate();
             if (affected == 0) throw new SQLException("No se pudo insertar la sala");
             rs = stSala.getGeneratedKeys();
@@ -70,20 +72,20 @@ public class SalaDaoImpl implements ISala {
             rs = null;
             int cap = sala.getCapacidad_total();
             int rows = (int) Math.ceil((double) cap / columnas);
-            stButaca = cn.prepareStatement("INSERT INTO Butaca (id_sala, fila, numero, estado) VALUES (?, ?, ?, ?)");
+            stAsiento = cn.prepareStatement("INSERT INTO Asiento (id_sala, fila, numero, estado) VALUES (?, ?, ?, ?)");
             int creados = 0;
             for (int r = 0; r < rows && creados < cap; r++) {
                 char filaChar = (char) ('A' + r);
                 for (int n = 1; n <= columnas && creados < cap; n++) {
-                    stButaca.setInt(1, salaId);
-                    stButaca.setString(2, String.valueOf(filaChar));
-                    stButaca.setInt(3, n);
-                    stButaca.setString(4, "Disponible");
-                    stButaca.addBatch();
+                    stAsiento.setInt(1, salaId);
+                    stAsiento.setString(2, String.valueOf(filaChar));
+                    stAsiento.setInt(3, n);
+                    stAsiento.setString(4, "Disponible");
+                    stAsiento.addBatch();
                     creados++;
                 }
             }
-            stButaca.executeBatch();
+            stAsiento.executeBatch();
             cn.commit();
             return salaId;
         } catch (SQLException e) {
@@ -94,7 +96,7 @@ public class SalaDaoImpl implements ISala {
         } finally {
             try { if (rs != null) rs.close(); } catch (SQLException e) { }
             try { if (stSala != null) stSala.close(); } catch (SQLException e) { }
-            try { if (stButaca != null) stButaca.close(); } catch (SQLException e) { }
+            try { if (stAsiento != null) stAsiento.close(); } catch (SQLException e) { }
             if (cn != null) {
                 try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
             }
@@ -104,13 +106,14 @@ public class SalaDaoImpl implements ISala {
 
     @Override
     public boolean update(Sala sala) {
-        String sql = "UPDATE Sala SET nombre=?, tipo=?, capacidad_total=? WHERE id_sala=?";
+        String sql = "UPDATE Sala SET nombre=?, tipo=?, capacidad_total=?, activo=? WHERE id_sala=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setString(1, sala.getNombre());
             st.setString(2, sala.getTipo());
             st.setInt(3, sala.getCapacidad_total());
-            st.setInt(4, sala.getId_sala());
+            st.setInt(4, sala.getActivo());
+            st.setInt(5, sala.getId_sala());
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -151,7 +154,43 @@ public class SalaDaoImpl implements ISala {
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM Sala WHERE id_sala=?";
+        Connection cn = null;
+        PreparedStatement st1 = null;
+        PreparedStatement st2 = null;
+        PreparedStatement st3 = null;
+        try {
+            cn = ConexionSingleton.getConnection();
+            cn.setAutoCommit(false);
+            st1 = cn.prepareStatement("DELETE FROM Compra WHERE id_asiento IN (SELECT id_asiento FROM Asiento WHERE id_sala=?)");
+            st1.setInt(1, id);
+            st1.executeUpdate();
+            st2 = cn.prepareStatement("DELETE FROM Asiento WHERE id_sala=?");
+            st2.setInt(1, id);
+            st2.executeUpdate();
+            st3 = cn.prepareStatement("DELETE FROM Sala WHERE id_sala=?");
+            st3.setInt(1, id);
+            int r = st3.executeUpdate();
+            cn.commit();
+            return r > 0;
+        } catch (SQLException e) {
+            if (cn != null) {
+                try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { if (st1 != null) st1.close(); } catch (SQLException e) { }
+            try { if (st2 != null) st2.close(); } catch (SQLException e) { }
+            try { if (st3 != null) st3.close(); } catch (SQLException e) { }
+            if (cn != null) {
+                try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+    }
+
+    @Override
+    public boolean toggleActivo(int id) {
+        String sql = "UPDATE Sala SET activo = 1 - activo WHERE id_sala=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, id);
@@ -167,7 +206,8 @@ public class SalaDaoImpl implements ISala {
             rs.getInt("id_sala"),
             rs.getString("nombre"),
             rs.getString("tipo"),
-            rs.getInt("capacidad_total")
+            rs.getInt("capacidad_total"),
+            rs.getInt("activo")
         );
     }
 }

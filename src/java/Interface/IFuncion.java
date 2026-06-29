@@ -10,4 +10,5 @@ public interface IFuncion {
     public Funcion searchById(int id);
     public boolean delete(int id);
     public List<Funcion> listarPorPelicula(int idPelicula);
+    public boolean toggleActivo(int id);
 }

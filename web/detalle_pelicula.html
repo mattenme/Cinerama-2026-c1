@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinerama | Detalle de Película</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="shortcut icon" href="assets/img/C_ine.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .movie-poster { width: 100%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .funcion-btn { display: block; width: 100%; text-align: left; padding: 12px 16px; border: 1px solid #444; border-radius: 8px; background: transparent; color: var(--text-body); transition: all .2s; }
+        .funcion-btn:hover { border-color: var(--cine-yellow); background: rgba(255,204,0,0.1); }
+        .funcion-btn .sala-nombre { font-weight: 600; font-size: 1rem; }
+        .funcion-btn .hora { font-size: 0.85rem; color: #999; }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container my-5">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div id="detalle-pelicula" class="text-center text-lg-start">
+                    <div class="text-center text-muted py-5">Cargando...</div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <h4 class="fw-bold mb-3">Horarios Disponibles</h4>
+                <div id="funciones-container">
+                    <div class="text-center text-muted py-5">Selecciona una película para ver horarios</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('includes/header.html').then(r => r.text()).then(d => { document.getElementById('header-placeholder').innerHTML = d; setActiveNavLink(); }).catch(e => console.error(e));
+            fetch('includes/footer.html').then(r => r.text()).then(d => { document.getElementById('footer-placeholder').innerHTML = d; }).catch(e => console.error(e));
+            cargarDetalle();
+        });
+
+        function formatFecha(dt) {
+            if (!dt) return '';
+            var d = new Date(dt);
+            return d.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function cargarDetalle() {
+            var params = new URLSearchParams(window.location.search);
+            var idPelicula = params.get('id');
+            if (!idPelicula) { document.getElementById('detalle-pelicula').innerHTML = '<div class="text-center text-danger">ID de película no especificado</div>'; return; }
+
+            fetch(API_URL + '/PeliculaController?id=' + idPelicula)
+                .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(function(p) {
+                    if (!p) throw new Error('Película no encontrada');
+                    document.title = 'Cinerama | ' + (p.titulo || 'Detalle');
+                    document.getElementById('detalle-pelicula').innerHTML =
+                        (p.imagen_url ? '<img src="' + p.imagen_url + '" alt="' + (p.titulo || '') + '" class="movie-poster mb-3">' : '<div class="display-1 mb-3 text-center">??</div>') +
+                        '<h2 class="fw-bold">' + (p.titulo || '') + '</h2>' +
+                        '<p class="text-muted small mb-1">' + (p.duracion_minutos || '') + ' min' + (p.genero ? ' &middot; ' + p.genero : '') + '</p>' +
+                        (p.destacado == 1 ? '<span class="badge bg-warning text-dark mb-2">Destacada</span>' : '') +
+                        (p.sinopsis ? '<p class="mt-3" style="color:#999;font-size:0.9rem;line-height:1.6;">' + p.sinopsis + '</p>' : '<p class="text-muted small mt-3">Sin sinopsis disponible</p>');
+                    return fetch(API_URL + '/FuncionController?idPelicula=' + idPelicula);
+                })
+                .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(function(funciones) {
+                    funciones = funciones.filter(function(f) { return f.activo == 1; });
+                    var container = document.getElementById('funciones-container');
+                    if (funciones.length === 0) {
+                        container.innerHTML = '<div class="text-center text-muted py-5">No hay horarios disponibles para esta película</div>';
+                        return;
+                    }
+                    var html = '';
+                    for (var i = 0; i < funciones.length; i++) {
+                        var f = funciones[i];
+                        var salaNombre = (f.sala && f.sala.nombre) ? f.sala.nombre : 'Sala #' + (f.id_sala || '?');
+                        html += '<button class="funcion-btn mb-2" onclick="location.href=\'asientos.html?id_funcion=' + f.id_funcion + '\'">' +
+                            '<div class="sala-nombre">' + salaNombre + '</div>' +
+                            '<div class="hora">' + formatFecha(f.hora_inicio) + '</div>' +
+                            '</button>';
+                    }
+                    container.innerHTML = html;
+                })
+                .catch(function(err) {
+                    console.error('Error:', err);
+                    document.getElementById('detalle-pelicula').innerHTML = '<div class="text-center text-danger">Error al cargar</div>';
+                });
+        }
+    </script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/header-auth.js"></script>
+    <script src="assets/js/darkmode.js"></script>
+</body>
+</html>

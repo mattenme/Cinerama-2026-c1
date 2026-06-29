@@ -4,7 +4,7 @@ let editandoId = null;
         var filtroSala = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -83,11 +83,30 @@ let editandoId = null;
             closeCrudModal();
         }
 
+        var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
+
+        function actualizarPaginacion() {
+            var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+            var el;
+            if (el = document.getElementById('pagination-info')) el.textContent = 'Total: ' + totalItems + ' registros';
+            if (el = document.getElementById('pagination-page')) el.textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+            if (el = document.getElementById('btn-prev')) el.disabled = paginaActual <= 0;
+            if (el = document.getElementById('btn-next')) el.disabled = paginaActual >= totalPaginas - 1;
+        }
+
+        window.paginar = function(dir) {
+            var nueva = paginaActual + dir;
+            if (nueva < 0) return;
+            paginaActual = nueva;
+            cargarTabla();
+        };
+
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-horarios tbody');
-            Api.funcion.listar().then(funciones => {
-                funciones = aplicarFiltro(funciones);
-                var total = funciones.length;
+            Api.funcion.listar().then(todas => {
+                var filtradas = aplicarFiltro(todas);
+                totalItems = filtradas.length;
+                var funciones = filtradas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
                 var info = document.getElementById('filtro-info');
                 if (filtroPelicula || filtroSala) {
                     var partes = [];
@@ -108,14 +127,16 @@ let editandoId = null;
                         <td>${f.sala ? f.sala.nombre : '-'}</td>
                         <td>${fechaStr}</td>
                         <td><span class="badge ${badge}">${f.estado || '-'}</span></td>
+                        <td><span class="badge ${f.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoHorario(${f.id_funcion})">${f.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editarHorario(${f.id_funcion})">Editar</button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="eliminarHorario(${f.id_funcion})">Eliminar</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editarHorario(${f.id_funcion})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="eliminarHorario(${f.id_funcion})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
+                actualizarPaginacion();
             }).catch(() => {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Error al cargar</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error al cargar</td></tr>';
             });
         }
 
@@ -149,6 +170,10 @@ let editandoId = null;
                     cargarTabla();
                 } else showError(r.mensaje || 'Error');
             }).catch(() => showError('Error de conexi\u00F3n'));
+        };
+
+        window.toggleActivoHorario = function(id) {
+            Api.funcion.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
         };
 
         window.eliminarHorario = function(id) {

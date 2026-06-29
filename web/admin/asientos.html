@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinerama | Gestión de Butacas</title>
+    <title>Cinerama | Gestión de Asientos</title>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        .seat-admin { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin: 2px; font-size: .7rem; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all .15s; }
+        .seat-admin { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; margin: 2px; font-size: .6rem; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all .15s; }
         .seat-admin.disponible { background: #28a745; color: #fff; }
         .seat-admin.vendida { background: #dc3545; color: #fff; cursor: not-allowed; }
         .seat-admin.mantenimiento { background: #0d6efd; color: #fff; cursor: not-allowed; }
@@ -25,13 +25,13 @@
         <div class="admin-content">
             <main>
                 <div class="container my-5">
-                <h1 class="fw-bold mb-4">Gestión de Butacas</h1>
+                <h1 class="fw-bold mb-4">Gestión de Asientos</h1>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Sala:</label>
                         <div class="d-flex gap-2">
-                            <select class="form-select" id="sala-select" onchange="cargarButacas()">
+                            <select class="form-select" id="sala-select" onchange="cargarAsientos()">
                                 <option value="">Seleccionar sala</option>
                             </select>
                             <button class="btn btn-sm btn-outline-primary" id="btn-editar-sala" onclick="editarSalaActual()" title="Editar sala" style="display:none;"><i class="bi bi-pencil"></i></button>
@@ -39,7 +39,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 d-flex align-items-end gap-1">
-                        <button class="btn btn-success w-100" onclick="mostrarAgregar()">+ Agregar Butaca</button>
+                        <button class="btn btn-success w-100" onclick="mostrarAgregar()">+ Agregar Asiento</button>
                         <button class="btn btn-info w-100" onclick="generarAutomatico()">Generar 100</button>
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
@@ -48,8 +48,8 @@
                 </div>
 
                 <div id="form-agregar" class="card p-3 mb-4 bg-light border-0 d-none">
-                    <h5 class="mb-3">Nueva Butaca</h5>
-                    <form onsubmit="guardarButaca(event)" class="row g-2">
+                    <h5 class="mb-3">Nuevo Asiento</h5>
+                    <form onsubmit="guardarAsiento(event)" class="row g-2">
                         <div class="col-auto">
                             <input type="text" class="form-control" id="fila" placeholder="Fila (ej: A)" maxlength="2" required>
                         </div>
@@ -64,7 +64,7 @@
                 </div>
 
                 <div id="seat-container" class="p-4 border rounded bg-light">
-                    <div class="text-center text-muted py-5">Selecciona una sala para ver sus butacas</div>
+                    <div class="text-center text-muted py-5">Selecciona una sala para ver sus asientos</div>
                 </div>
             </div>
             </main>
@@ -74,7 +74,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/admin.js"></script>
-    <script src="../assets/js/admin/butacas.js"></script>
+    <script src="../assets/js/admin/asientos.js"></script>
     <script src="../assets/js/utils.js"></script><script src="../assets/js/header-auth.js"></script><script src="../assets/js/darkmode.js"></script></body>
 </html>
 

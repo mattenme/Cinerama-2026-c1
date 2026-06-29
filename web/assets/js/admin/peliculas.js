@@ -1,7 +1,7 @@
 let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -53,29 +53,52 @@ let editandoId = null;
             closeCrudModal();
         }
 
+        var paginaActual = 0;
+        var filasPorPagina = 10;
+        var totalItems = 0;
+
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-peliculas tbody');
-            Api.pelicula.listar().then(peliculas => {
+            Api.pelicula.listar(paginaActual * filasPorPagina, filasPorPagina).then(resp => {
+                var peliculas = resp.data || resp;
+                totalItems = resp.total || peliculas.length;
                 tbody.innerHTML = peliculas.map(p => `
                     <tr>
                         <td>${p.id_pelicula}</td>
-                        <td>${p.imagen_url ? '<img src="' + p.imagen_url + '" alt="img" style="width:40px;height:60px;object-fit:cover;border-radius:4px;">' : '<span class="text-muted">?</span>'}</td>
+                        <td>${p.imagen_url ? '<img src="' + p.imagen_url + '" alt="img" class="admin-img-thumb" style="width:40px;height:60px;object-fit:cover;border-radius:4px;" onclick="abrirLightbox(\'' + p.imagen_url.replace(/'/g, "\\'") + '\')">' : '<span class="text-muted">?</span>'}</td>
                         <td><strong>${p.titulo}</strong></td>
                         <td>${p.duracion_minutos || '-'} min</td>
                         <td>${p.genero || '<span class="text-muted">?</span>'}</td>
-                        <td>${p.destacado == 1 ? '<span class="badge bg-warning text-dark">S\u00ED</span>' : '<span class="text-muted">?</span>'}</td>
+                        <td><span class="badge ${p.destacado == 1 ? 'bg-warning text-dark' : 'bg-secondary'}" style="cursor:pointer;" onclick="toggleDestacadoPelicula(${p.id_pelicula})">${p.destacado == 1 ? 'S\u00ED' : 'No'}</span></td>
+                        <td><span class="badge ${p.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoPelicula(${p.id_pelicula})">${p.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editarPelicula(${p.id_pelicula})">Editar</button>
-                            <a href="horarios.html?idPelicula=${p.id_pelicula}" class="btn btn-sm btn-outline-info">Horarios</a>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarPelicula(${p.id_pelicula})">Eliminar</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editarPelicula(${p.id_pelicula})">${iconSVG('edit')}</button>
+                            <a href="horarios.html?idPelicula=${p.id_pelicula}" class="btn btn-sm btn-outline-info">${iconSVG('clock')}</a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarPelicula(${p.id_pelicula})">${iconSVG('trash')}</button>
                         </td>
                     </tr>
                 `).join('');
+                actualizarPaginacion();
             }).catch(err => {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error al cargar</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Error al cargar</td></tr>';
                 console.error(err);
             });
         }
+
+        function actualizarPaginacion() {
+            var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+            document.getElementById('pagination-info').textContent = 'Total: ' + totalItems + ' registros';
+            document.getElementById('pagination-page').textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+            document.getElementById('btn-prev').disabled = paginaActual <= 0;
+            document.getElementById('btn-next').disabled = paginaActual >= totalPaginas - 1;
+        }
+
+        window.paginar = function(dir) {
+            var nueva = paginaActual + dir;
+            if (nueva < 0) return;
+            paginaActual = nueva;
+            cargarTabla();
+        };
 
         function filtrarTabla() {
             var input = document.getElementById('buscador');
@@ -110,13 +133,24 @@ let editandoId = null;
                         showSuccess(editandoId ? 'Pel\u00EDcula actualizada' : 'Pel\u00EDcula guardada');
                         ocultarFormulario();
                         cargarTabla();
-                    } else showError('Error: ' + (r.error || 'desconocido'));
+                    } else showError(r.mensaje || 'Error desconocido');
                 }).catch(err => showError('Error de conexi\u00F3n: ' + err));
+        };
+
+        window.toggleDestacadoPelicula = function(id) {
+            Api.pelicula.toggleDestacado(id).then(r => { if (r.success) cargarTabla(); });
+        };
+
+        window.toggleActivoPelicula = function(id, actual) {
+            Api.pelicula.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
         };
 
         window.eliminarPelicula = function(id) {
             showConfirm('\u00BFEliminar pel\u00EDcula #' + id + '?', function() {
-                Api.pelicula.eliminar(id).then(r => { if (r.success) cargarTabla(); });
+                Api.pelicula.eliminar(id).then(function(r) {
+                    if (r.success) cargarTabla();
+                    else showError(r.mensaje || 'Error al eliminar');
+                });
             });
         };
 

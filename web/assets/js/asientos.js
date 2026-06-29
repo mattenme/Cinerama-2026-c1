@@ -9,7 +9,7 @@ const seatPrice = 5;
 
 let selectedSeats = [];
 let selectedFood = {};
-let butacas = [];
+let asientos = [];
 let funcionData = null;
 let idSala = null;
 let pollingInterval = null;
@@ -32,12 +32,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!funcion || !funcion.sala) throw new Error('Funci\u00F3n no encontrada');
             idSala = funcion.sala.id_sala;
             mostrarInfoPelicula(funcion);
-            return fetch(API_URL + '/ButacaController?idSala=' + idSala);
+            return fetch(API_URL + '/AsientoController?action=liberarReservadas&idSala=' + idSala).then(function() {
+                return fetch(API_URL + '/AsientoController?idSala=' + idSala);
+            });
         })
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(data => {
-            butacas = data;
-            renderizarGrilla(butacas);
+            asientos = data;
+            renderizarGrilla(asientos);
             renderFoodMenu();
             if (pollingInterval) clearInterval(pollingInterval);
             pollingInterval = setInterval(refreshSeats, 5000);
@@ -66,13 +68,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedSeats.length > 0 && !isConfirming) {
             e.preventDefault();
             e.returnValue = '';
-            liberarTodosAsientos();
         }
     });
 
     document.addEventListener('click', function(e) {
         var link = e.target.closest('.navbar-nav a');
-        if (link && selectedSeats.length > 0) isConfirming = true;
+        if (link && selectedSeats.length > 0 && !isConfirming) {
+            e.preventDefault();
+            showConfirm('Hay asientos seleccionados sin confirmar. \u00BFSalir de todas formas?', function() {
+                isConfirming = true;
+                liberarTodosAsientos();
+                window.location.href = link.href;
+            });
+        }
     });
 
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
@@ -113,10 +121,10 @@ function actualizarTimerDisplay() {
 
 function liberarTodosAsientos() {
     selectedSeats.forEach(function(key) {
-        var butaca = butacas.find(function(b) { return (b.fila + b.numero) === key; });
-        if (butaca && butaca.estado === 'Seleccionada') {
-            var params = new URLSearchParams({ action: 'cambiarEstado', id: butaca.id_butaca, estado: 'Disponible' });
-            fetch(API_URL + '/ButacaController', {
+        var asiento = asientos.find(function(b) { return (b.fila + b.numero) === key; });
+                if (asiento && asiento.estado === 'Seleccionada') {
+                    var params = new URLSearchParams({ action: 'cambiarEstado', id: asiento.id_asiento, estado: 'Disponible' });
+            fetch(API_URL + '/AsientoController', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params
@@ -133,7 +141,7 @@ function selectSeat(id, key) {
     actualizarResumen();
     actualizarClaseAsiento(key, 'selected');
     const params = new URLSearchParams({ action: 'cambiarEstado', id: id, estado: 'Seleccionada' });
-    fetch(API_URL + '/ButacaController', {
+    fetch(API_URL + '/AsientoController', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
@@ -158,7 +166,7 @@ function deselectSeat(id, key) {
     if (idx > -1) selectedSeats.splice(idx, 1);
     actualizarResumen();
     const params = new URLSearchParams({ action: 'cambiarEstado', id: id, estado: 'Disponible' });
-    fetch(API_URL + '/ButacaController', {
+    fetch(API_URL + '/AsientoController', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
@@ -176,11 +184,11 @@ function deselectSeat(id, key) {
 
 function refreshSeats() {
     if (!idSala) return;
-    fetch(API_URL + '/ButacaController?idSala=' + idSala)
+    fetch(API_URL + '/AsientoController?idSala=' + idSala)
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(data => {
-            butacas = data;
-            renderizarGrilla(butacas);
+            asientos = data;
+            renderizarGrilla(asientos);
         })
         .catch(err => console.error('Error al refrescar asientos:', err));
 }
@@ -206,12 +214,12 @@ function mostrarInfoPelicula(funcion) {
     `;
 }
 
-function renderizarGrilla(butacasList) {
+function renderizarGrilla(asientosList) {
     const grid = document.getElementById('seats-grid');
     grid.innerHTML = '';
 
     const grupos = {};
-    butacasList.forEach(b => {
+    asientosList.forEach(b => {
         if (!grupos[b.fila]) grupos[b.fila] = [];
         grupos[b.fila].push(b);
     });
@@ -234,7 +242,7 @@ function renderizarGrilla(butacasList) {
             } else {
                 clases += ' occupied';
             }
-            return `<div class="${clases}" data-id="${b.id_butaca}" data-fila="${b.fila}" data-numero="${b.numero}" data-estado="${b.estado}">${b.fila}${b.numero}</div>`;
+            return `<div class="${clases}" data-id="${b.id_asiento}" data-fila="${b.fila}" data-numero="${b.numero}" data-estado="${b.estado}">${b.fila}${b.numero}</div>`;
         }).join('');
         html += `<div class="d-inline-flex align-items-center mb-1"><span class="fw-bold me-2" style="min-width:20px;display:inline-block;">${fila}</span>${asientos}</div>`;
     });
@@ -242,21 +250,21 @@ function renderizarGrilla(butacasList) {
 }
 
 function actualizarResumen() {
-    const list = document.getElementById('selected-seats');
-    const totalEl = document.getElementById('total-price');
-    list.innerHTML = '';
-    if (selectedSeats.length === 0) {
-        list.innerHTML = '<li class="text-muted">Ninguno seleccionado</li>';
+    const container = document.getElementById('selected-seats');
+    const countBadge = document.getElementById('selected-count');
+    container.innerHTML = '';
+    var count = selectedSeats.length;
+    if (countBadge) countBadge.textContent = count;
+    if (count === 0) {
+        container.innerHTML = '<span class="text-muted">Ninguno seleccionado</span>';
     } else {
-        selectedSeats.forEach(s => {
-            const li = document.createElement('li');
-            li.className = 'd-flex justify-content-between';
-            li.innerHTML = `<span>Asiento ${s}</span><span>$${seatPrice}</span>`;
-            list.appendChild(li);
-        });
+        var badges = selectedSeats.map(function(s) {
+            return '<span class="badge bg-warning text-dark me-1 mb-1">' + s + '</span>';
+        }).join(' ');
+        container.innerHTML = '<div class="d-flex flex-wrap align-items-center gap-1">' + badges + '<span class="ms-auto text-nowrap fw-semibold">S/ ' + (count * seatPrice) + '</span></div>';
     }
     actualizarTotal();
-    document.getElementById('confirm-btn').disabled = selectedSeats.length === 0;
+    document.getElementById('confirm-btn').disabled = count === 0;
 }
 
 function actualizarTotal() {
@@ -291,9 +299,9 @@ function renderFoodMenu() {
                         <small class="text-muted">S/ ${(item.precio || 0).toFixed(2)}</small>
                     </div>
                     <div class="d-flex align-items-center">
-                        <button class="btn btn-sm btn-outline-light px-1 food-minus" data-id="${item.id_producto}">\u2212</button>
-                        <span class="mx-2 food-qty" id="qty-${item.id_producto}">0</span>
-                        <button class="btn btn-sm btn-outline-light px-1 food-plus" data-id="${item.id_producto}">+</button>
+                        <button class="btn btn-sm btn-outline-secondary px-1 food-minus" data-id="${item.id_producto}">\u2212</button>
+                        <span class="mx-2 food-qty" id="qty-${item.id_producto}" style="color:var(--text-body);">0</span>
+                        <button class="btn btn-sm btn-outline-secondary px-1 food-plus" data-id="${item.id_producto}">+</button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -336,7 +344,12 @@ function getSelectedFood() {
 async function confirmarSeleccion() {
     if (selectedSeats.length === 0 || !funcionData) return;
 
-    const butacasSeleccionadas = butacas.filter(b => {
+    var btn = document.getElementById('confirm-btn');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Procesando...';
+
+    const asientosSeleccionados = asientos.filter(b => {
         const key = b.fila + b.numero;
         return selectedSeats.includes(key);
     });
@@ -345,7 +358,7 @@ async function confirmarSeleccion() {
     params.append('seats', selectedSeats.join(','));
     params.append('total', selectedSeats.length * seatPrice);
     params.append('id_funcion', idFuncion);
-    if (butacasSeleccionadas.length > 0) params.append('id_butaca', butacasSeleccionadas.map(b => b.id_butaca).join(','));
+    if (asientosSeleccionados.length > 0) params.append('id_asiento', asientosSeleccionados.map(b => b.id_asiento).join(','));
     const foodData = getSelectedFood();
     if (foodData) params.append('food', foodData);
     params.append('grandTotal', String(selectedSeats.length * seatPrice + calcFoodTotal()));

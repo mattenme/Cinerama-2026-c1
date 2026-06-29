@@ -71,6 +71,6 @@ public class CalificacionController extends HttpServlet {
             e.printStackTrace();
             return;
         }
-        resp.getWriter().write("{\"success\":" + ok + "}");
+        resp.getWriter().write("{\"success\":" + ok + ",\"mensaje\":\"" + (ok ? "Operaci\u00f3n exitosa" : "Error al realizar la operaci\u00f3n") + "\"}");
     }
 }

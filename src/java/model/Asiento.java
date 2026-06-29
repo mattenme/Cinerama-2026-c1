@@ -1,30 +1,30 @@
 package model;
 
-public class Butaca {
+public class Asiento {
 
-    private int id_butaca;
+    private int id_asiento;
     private Sala sala;
     private String fila;
     private int numero;
     private String estado;
 
-    public Butaca() {
+    public Asiento() {
     }
 
-    public Butaca(int id_butaca, Sala sala, String fila, int numero, String estado) {
-        this.id_butaca = id_butaca;
+    public Asiento(int id_asiento, Sala sala, String fila, int numero, String estado) {
+        this.id_asiento = id_asiento;
         this.sala = sala;
         this.fila = fila;
         this.numero = numero;
         this.estado = estado;
     }
 
-    public int getId_butaca() {
-        return id_butaca;
+    public int getId_asiento() {
+        return id_asiento;
     }
 
-    public void setId_butaca(int id_butaca) {
-        this.id_butaca = id_butaca;
+    public void setId_asiento(int id_asiento) {
+        this.id_asiento = id_asiento;
     }
 
     public Sala getSala() {

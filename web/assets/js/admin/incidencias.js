@@ -1,7 +1,7 @@
 let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -60,10 +60,30 @@ let editandoId = null;
             });
         }
 
+        var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
+
+        function actualizarPaginacion() {
+            var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+            var el;
+            if (el = document.getElementById('pagination-info')) el.textContent = 'Total: ' + totalItems + ' registros';
+            if (el = document.getElementById('pagination-page')) el.textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+            if (el = document.getElementById('btn-prev')) el.disabled = paginaActual <= 0;
+            if (el = document.getElementById('btn-next')) el.disabled = paginaActual >= totalPaginas - 1;
+        }
+
+        window.paginar = function(dir) {
+            var nueva = paginaActual + dir;
+            if (nueva < 0) return;
+            paginaActual = nueva;
+            cargarTabla();
+        };
+
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-incidencias tbody');
-            Api.incidencia.listar().then(lista => {
-                tbody.innerHTML = lista.map(i => {
+            Api.incidencia.listar().then(todas => {
+                totalItems = todas.length;
+                var items = todas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
+                tbody.innerHTML = items.map(i => {
                     const badge = { reportado: 'bg-danger', en_proceso: 'bg-warning text-dark', resuelto: 'bg-success' };
                     const fecha = i.fecha_reporte ? new Date(i.fecha_reporte) : null;
                     const fechaStr = fecha ? fecha.toLocaleString('es-PE') : '-';
@@ -75,10 +95,12 @@ let editandoId = null;
                         <td>${fechaStr}</td>
                         <td><span class="badge ${badge[i.estado] || 'bg-secondary'}">${i.estado || '-'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${i.id_incidencia})">Eliminar</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${i.id_incidencia})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${i.id_incidencia})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
+                actualizarPaginacion();
             }).catch(() => {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error al cargar</td></tr>';
             });
@@ -112,6 +134,10 @@ let editandoId = null;
                 if (r.success) { showSuccess(editandoId ? 'Incidencia actualizada' : 'Incidencia guardada'); ocultarFormulario(); cargarTabla(); }
                 else showError(r.mensaje || 'Error');
             }).catch(() => showError('Error de conexi\u00F3n'));
+        };
+
+        window.editar = function(id) {
+            Api.incidencia.buscar(id).then(function(i) { if (i) mostrarFormulario(i); });
         };
 
         window.eliminar = function(id) {

@@ -7,7 +7,7 @@ public class Compra {
     private int id_compra;
     private Cliente cliente;
     private Funcion funcion;
-    private Butaca butaca;
+    private Asiento asiento;
     private double precio;
     private String metodo_pago;
     private String estado;
@@ -18,13 +18,13 @@ public class Compra {
     public Compra() {
     }
 
-    public Compra(int id_compra, Cliente cliente, Funcion funcion, Butaca butaca,
+    public Compra(int id_compra, Cliente cliente, Funcion funcion, Asiento asiento,
             double precio, String metodo_pago, String estado,
             String codigo_qr, Timestamp fecha_compra) {
         this.id_compra = id_compra;
         this.cliente = cliente;
         this.funcion = funcion;
-        this.butaca = butaca;
+        this.asiento = asiento;
         this.precio = precio;
         this.metodo_pago = metodo_pago;
         this.estado = estado;
@@ -41,8 +41,8 @@ public class Compra {
     public Funcion getFuncion() { return funcion; }
     public void setFuncion(Funcion funcion) { this.funcion = funcion; }
 
-    public Butaca getButaca() { return butaca; }
-    public void setButaca(Butaca butaca) { this.butaca = butaca; }
+    public Asiento getAsiento() { return asiento; }
+    public void setAsiento(Asiento asiento) { this.asiento = asiento; }
 
     public double getPrecio() { return precio; }
     public void setPrecio(double precio) { this.precio = precio; }

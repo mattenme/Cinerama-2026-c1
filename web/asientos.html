@@ -65,10 +65,12 @@
                                 </div>
                             </div>
                             <hr>
-                            <h6 class="fw-bold mb-2">Asientos:</h6>
-                            <ul id="selected-seats" class="list-unstyled mb-3 small">
-                                <li class="text-muted">Ninguno seleccionado</li>
-                            </ul>
+                            <h6 class="fw-bold mb-2">Asientos:
+                                <span id="selected-count" class="badge bg-warning text-dark ms-1">0</span>
+                            </h6>
+                            <div id="selected-seats" class="mb-3 small">
+                                <span class="text-muted">Ninguno seleccionado</span>
+                            </div>
                             <hr>
                             <h6 class="fw-bold mb-3">
                                 Comida
@@ -95,6 +97,7 @@
 
     <div id="footer-placeholder"></div>
 
+    <script src="assets/js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -113,16 +116,7 @@
                 })
                 .catch(error => console.error('Error cargando footer:', error));
         });
-
-        function setActiveNavLink() {
-            var path = window.location.pathname;
-            document.querySelectorAll('.navbar-nav .nav-link').forEach(function(link) {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === path || (path === '/Cinerama_1/' && link.getAttribute('href') === '/Cinerama_1/index.html')) link.classList.add('active');
-            });
-        }
     </script>
-    <script src="assets/js/config.js"></script>
     <script src="assets/js/asientos.js"></script>
 <script src="assets/js/utils.js"></script><script src="assets/js/header-auth.js"></script><script src="assets/js/darkmode.js"></script></body>
 </html>

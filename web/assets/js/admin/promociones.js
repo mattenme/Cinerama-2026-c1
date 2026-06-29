@@ -1,7 +1,7 @@
 let editandoId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -46,23 +46,44 @@ let editandoId = null;
 
         function ocultarFormulario() { closeCrudModal(); }
 
+        var paginaActual = 0, filasPorPagina = 10, totalItems = 0;
+
+        function actualizarPaginacion() {
+            var totalPaginas = Math.ceil(totalItems / filasPorPagina) || 1;
+            var el;
+            if (el = document.getElementById('pagination-info')) el.textContent = 'Total: ' + totalItems + ' registros';
+            if (el = document.getElementById('pagination-page')) el.textContent = (paginaActual + 1) + ' / ' + totalPaginas;
+            if (el = document.getElementById('btn-prev')) el.disabled = paginaActual <= 0;
+            if (el = document.getElementById('btn-next')) el.disabled = paginaActual >= totalPaginas - 1;
+        }
+
+        window.paginar = function(dir) {
+            var nueva = paginaActual + dir;
+            if (nueva < 0) return;
+            paginaActual = nueva;
+            cargarTabla();
+        };
+
         function cargarTabla() {
             const tbody = document.querySelector('#tabla-promociones tbody');
-            Api.promocion.listar().then(lista => {
-                tbody.innerHTML = lista.map(p => {
+            Api.promocion.listar().then(todas => {
+                totalItems = todas.length;
+                var items = todas.slice(paginaActual * filasPorPagina, (paginaActual + 1) * filasPorPagina);
+                tbody.innerHTML = items.map(p => {
                     const badge = p.activo == 1 ? 'bg-success' : 'bg-danger';
                     return `<tr>
                         <td>${p.id_promocion}</td>
                         <td><strong>${p.codigo}</strong></td>
                         <td>${p.descripcion || '<span class="text-muted">\u2014</span>'}</td>
                         <td><span class="badge bg-warning text-dark">${p.descuento}%</span></td>
-                        <td><span class="badge ${badge}">${p.activo == 1 ? 'S\u00ED' : 'No'}</span></td>
+                        <td><span class="badge ${p.activo == 1 ? 'bg-success' : 'bg-danger'}" style="cursor:pointer;" onclick="toggleActivoPromo(${p.id_promocion})">${p.activo == 1 ? 'Activo' : 'Inactivo'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${p.id_promocion})">Editar</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${p.id_promocion})">Eliminar</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editar(${p.id_promocion})">${iconSVG('edit')}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminar(${p.id_promocion})">${iconSVG('trash')}</button>
                         </td>
                     </tr>`;
                 }).join('');
+                actualizarPaginacion();
             }).catch(() => {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Error al cargar</td></tr>';
             });
@@ -99,6 +120,10 @@ let editandoId = null;
 
         window.editar = function(id) {
             Api.promocion.buscar(id).then(p => { if (p) mostrarFormulario(p); });
+        };
+
+        window.toggleActivoPromo = function(id) {
+            Api.promocion.toggleActivo(id).then(r => { if (r.success) cargarTabla(); });
         };
 
         window.eliminar = function(id) {

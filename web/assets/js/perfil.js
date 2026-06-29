@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         '</div>' +
                         '<div class="col-auto d-flex gap-2">' +
                             '<button class="btn btn-outline-warning d-none" id="btn-reportar-incidencia" onclick="reportarIncidencia()">Reportar Incidencia</button>' +
-                            '<button class="btn btn-outline-light" onclick="mostrarEditar(\'' + cliente.nombre + '\',\'' + (cliente.email||'') + '\',\'' + (cliente.telefono||'') + '\')">Editar Perfil</button>' +
+                            '<button class="btn btn-outline-light" onclick="mostrarEditar(\'' + escapeHtmlAttr(cliente.nombre) + '\',\'' + escapeHtmlAttr(cliente.email||'') + '\',\'' + escapeHtmlAttr(cliente.telefono||'') + '\')">Editar Perfil</button>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -39,6 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             '<div class="col-12"><label class="form-label fw-semibold">Nombre:</label><input type="text" class="form-control" id="edit-nombre" required></div>' +
                             '<div class="col-6"><label class="form-label fw-semibold">Email:</label><input type="email" class="form-control" id="edit-email"></div>' +
                             '<div class="col-6"><label class="form-label fw-semibold">Tel\u00E9fono:</label><input type="tel" class="form-control" id="edit-telefono"></div>' +
+                            '<div class="col-12"><hr><h6 class="fw-bold">Cambiar Contrase\u00F1a</h6></div>' +
+                            '<div class="col-12"><label class="form-label fw-semibold">Contrase\u00F1a Actual:</label><input type="password" class="form-control" id="edit-contrasena-actual"></div>' +
+                            '<div class="col-6"><label class="form-label fw-semibold">Nueva Contrase\u00F1a:</label><input type="password" class="form-control" id="edit-contrasena-nueva"></div>' +
+                            '<div class="col-6"><label class="form-label fw-semibold">Confirmar:</label><input type="password" class="form-control" id="edit-contrasena-confirmar"></div>' +
                         '</div>' +
                         '<div class="mt-3 d-flex gap-2">' +
                             '<button type="submit" class="btn btn-success">Guardar</button>' +
@@ -74,6 +78,8 @@ function cancelarEditar() {
 
 function guardarPerfil(event) {
     event.preventDefault();
+    var btn = event.target.querySelector('button[type="submit"]');
+    if (btn && btn.disabled) return;
     var id = localStorage.getItem('clienteId');
     var params = new URLSearchParams();
     params.append('action', 'update');
@@ -82,18 +88,40 @@ function guardarPerfil(event) {
     params.append('email', document.getElementById('edit-email').value);
     params.append('telefono', document.getElementById('edit-telefono').value);
 
+    var pwActual = document.getElementById('edit-contrasena-actual').value;
+    var pwNueva = document.getElementById('edit-contrasena-nueva').value;
+    var pwConfirmar = document.getElementById('edit-contrasena-confirmar').value;
+
+    function limpiarPw() {
+        document.getElementById('edit-contrasena-actual').value = '';
+        document.getElementById('edit-contrasena-nueva').value = '';
+        document.getElementById('edit-contrasena-confirmar').value = '';
+    }
+
+    if (pwNueva || pwConfirmar || pwActual) {
+        if (!pwActual) { limpiarPw(); showError('Ingresa tu contrase\u00F1a actual para cambiar la contrase\u00F1a'); return; }
+        if (!pwNueva || !pwConfirmar) { limpiarPw(); showError('Completa todos los campos de contrase\u00F1a'); return; }
+        if (pwNueva !== pwConfirmar) { limpiarPw(); showError('Las contrase\u00F1as nuevas no coinciden'); return; }
+        if (pwNueva.length < 4) { limpiarPw(); showError('La contrase\u00F1a debe tener al menos 4 caracteres'); return; }
+        params.append('contrasena_actual', pwActual);
+        params.append('contrasena', pwNueva);
+    }
+    setLoading(btn, true);
     fetch(API_URL + '/ClienteController', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
         .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function(res) {
             if (res.success) {
                 localStorage.setItem('clienteNombre', document.getElementById('edit-nombre').value);
                 cancelarEditar();
-                location.reload();
+                showSuccess('Perfil actualizado correctamente');
+                setTimeout(function() { location.reload(); }, 1000);
             } else {
-                showError('Error al guardar');
-            }
+            setLoading(btn, false);
+            limpiarPw();
+            showError(res.mensaje || 'Error al guardar');
+                }
         })
-        .catch(function() { showError('Error de conexi\u00F3n'); });
+        .catch(function() { setLoading(btn, false); showError('Error de conexi\u00F3n'); });
 }
 
 function cargarHistorial(clienteId) {
@@ -131,23 +159,24 @@ function cargarHistorial(clienteId) {
             var raw = c.codigo_qr || 'cmp_' + c.id_compra;
             var qr = raw.replace(/_\d+$/, '');
             if (!grupos[qr]) {
-                grupos[qr] = { compra: c, butacas: [], filas: [], precio: 0 };
+                grupos[qr] = { compra: c, asientos: [], filas: [], precio: 0 };
             }
             var g = grupos[qr];
             g.precio += c.precio || 0;
-            if (c.butaca) {
-                g.butacas.push(c.butaca);
-                g.filas.push(c.butaca.fila + c.butaca.numero);
+            if (c.asiento) {
+                g.asientos.push(c.asiento);
+                g.filas.push(c.asiento.fila + c.asiento.numero);
             }
         });
         tbody.innerHTML = Object.keys(grupos).map(function(qr) {
             var g = grupos[qr];
             var c = g.compra;
             var badge = { completada: 'bg-success', pendiente: 'bg-warning text-dark', cancelada: 'bg-danger' };
+            var badgeMetodo = { 'Tarjeta Visa': 'bg-primary', 'Tarjeta Mastercard': 'bg-primary', Yape: 'bg-purple text-white', Plin: 'bg-info text-dark', Efectivo: 'bg-secondary' };
             var idPeli = c.funcion ? c.funcion.pelicula.id_pelicula : null;
             var calExistente = idPeli ? calMap[String(idPeli)] : null;
             var colCal = '';
-            var anyCompletada = g.butacas.some(function() { return true; }) && c.estado === 'completada';
+            var anyCompletada = g.asientos.some(function() { return true; }) && c.estado === 'completada';
             if (c.estado === 'completada' && idPeli) {
                 if (calExistente) {
                     var est = '';
@@ -165,7 +194,7 @@ function cargarHistorial(clienteId) {
                 '<td><span class="badge bg-secondary">' + g.filas.join(', ') + '</span></td>' +
                 '<td>' + formatearFecha(c.fecha_compra) + '</td>' +
                 '<td>S/ ' + (g.precio || 0).toFixed(2) + '</td>' +
-                '<td><span class="badge bg-secondary">' + (c.metodo_pago || '-') + '</span></td>' +
+                '<td><span class="badge ' + (badgeMetodo[c.metodo_pago] || 'bg-secondary') + '">' + (c.metodo_pago || '-') + '</span></td>' +
                 '<td><span class="badge ' + (badge[c.estado] || 'bg-secondary') + '">' + (c.estado || '-') + '</span></td>' +
                 '<td>' + colCal + '</td>' +
             '</tr>';

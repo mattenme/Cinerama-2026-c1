@@ -29,7 +29,7 @@
                                 <th>ID</th>
                                 <th>Cliente</th>
                                 <th>Función</th>
-                                <th>Butacas</th>
+                                <th>Asientos</th>
                                 <th>Precio</th>
                                 <th>Productos</th>
                                 <th>Método</th>
@@ -43,6 +43,14 @@
                             <tr><td colspan="11" class="text-center text-muted">Cargando...</td></tr>
                         </tbody>
                     </table>
+                    <nav class="d-flex justify-content-between align-items-center px-3 py-2">
+                        <span class="text-muted small" id="pagination-info"></span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-prev" onclick="paginar(-1)" disabled>&laquo; Anterior</button>
+                            <span class="align-self-center px-2 small" id="pagination-page">1</span>
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-next" onclick="paginar(1)" disabled>Siguiente &raquo;</button>
+                        </div>
+                    </nav>
                 </div>
             </div>
             </main>

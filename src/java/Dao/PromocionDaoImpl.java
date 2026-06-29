@@ -89,16 +89,42 @@ public class PromocionDaoImpl implements IPromocion {
     }
 
     @Override
-    public int eliminar(int id) {
-        String sql = "DELETE FROM Promocion WHERE id_promocion=?";
+    public boolean toggleActivo(int id) {
+        String sql = "UPDATE Promocion SET activo = 1 - activo WHERE id_promocion=?";
         try (Connection cn = ConexionSingleton.getConnection();
              PreparedStatement st = cn.prepareStatement(sql)) {
             st.setInt(1, id);
-            return st.executeUpdate();
+            return st.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        return 0;
+    }
+
+    @Override
+    public int eliminar(int id) {
+        Connection cn = null;
+        PreparedStatement st = null;
+        try {
+            cn = ConexionSingleton.getConnection();
+            cn.setAutoCommit(false);
+            st = cn.prepareStatement("DELETE FROM Promocion WHERE id_promocion=?");
+            st.setInt(1, id);
+            int r = st.executeUpdate();
+            cn.commit();
+            return r;
+        } catch (SQLException e) {
+            if (cn != null) {
+                try { cn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+            return 0;
+        } finally {
+            try { if (st != null) st.close(); } catch (SQLException e) { }
+            if (cn != null) {
+                try { cn.setAutoCommit(true); cn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
     }
 
     private Promocion mapear(ResultSet rs) throws SQLException {

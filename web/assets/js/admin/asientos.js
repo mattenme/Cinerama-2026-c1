@@ -1,7 +1,7 @@
-let butacasActuales = [];
+let asientosActuales = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteAdmin') !== 'true') { window.location.href = '../login.html'; return; }
+            if (!localStorage.getItem('clienteId') || localStorage.getItem('clienteRol') !== 'admin') { window.location.href = '../login.html'; return; }
             fetch('../includes/header.html')
                 .then(r => r.text())
                 .then(d => document.getElementById('header-placeholder').innerHTML = d)
@@ -26,15 +26,15 @@ let butacasActuales = [];
             });
         });
 
-        function cargarButacas() {
+        function cargarAsientos() {
             var idSala = document.getElementById('sala-select').value;
             document.getElementById('btn-editar-sala').style.display = idSala ? 'inline-block' : 'none';
             document.getElementById('btn-eliminar-sala').style.display = idSala ? 'inline-block' : 'none';
             if (!idSala) return;
-            fetch(API_URL + '/ButacaController?idSala=' + idSala)
+            fetch(API_URL + '/AsientoController?idSala=' + idSala)
                 .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
                 .then(function(data) {
-                    butacasActuales = data;
+                    asientosActuales = data;
                     renderizar(data);
                 });
         }
@@ -42,7 +42,7 @@ let butacasActuales = [];
         function renderizar(lista) {
             const container = document.getElementById('seat-container');
             if (lista.length === 0) {
-                container.innerHTML = '<div class="text-center text-muted py-5">No hay butacas en esta sala. Agr\u00E9guelas manualmente o use "Generar 100".</div>';
+                container.innerHTML = '<div class="text-center text-muted py-5">No hay asientos en esta sala. Agr\u00E9guelos manualmente o use "Generar 100".</div>';
                 return;
             }
             const grupos = {};
@@ -56,7 +56,7 @@ let butacasActuales = [];
                 grupos[f].sort((a, b) => a.numero - b.numero);
                 const asientos = grupos[f].map(b => {
                     const estado = b.estado ? b.estado.toLowerCase() : 'disponible';
-                    return `<div class="seat-admin ${estado}" data-id="${b.id_butaca}" data-estado="${b.estado}" data-fila="${b.fila}" data-numero="${b.numero}" onclick="cambiarEstado(this)">${b.fila}${b.numero}</div>`;
+                    return `<div class="seat-admin ${estado}" data-id="${b.id_asiento}" data-estado="${b.estado}" data-fila="${b.fila}" data-numero="${b.numero}" onclick="cambiarEstado(this)">${b.fila}${b.numero}</div>`;
                 }).join('');
                 html += `<div class="mb-1"><span class="fw-bold me-2" style="min-width:20px;display:inline-block;">${f}</span>${asientos}</div>`;
             });
@@ -74,7 +74,7 @@ let butacasActuales = [];
 
             var titulo = document.createElement('div');
             titulo.className = 'fw-bold small mb-2';
-            titulo.textContent = 'Butaca ' + (el.dataset.fila || '?') + (el.dataset.numero || '?');
+            titulo.textContent = 'Asiento ' + (el.dataset.fila || '?') + (el.dataset.numero || '?');
             container.appendChild(titulo);
 
             var lbl = document.createElement('label');
@@ -103,26 +103,26 @@ let butacasActuales = [];
             btnRow.className = 'd-flex gap-1 mt-2';
             var btnDel = document.createElement('button');
             btnDel.className = 'btn btn-sm btn-outline-danger';
-            btnDel.textContent = 'Eliminar';
+            btnDel.innerHTML = iconSVG('trash');
             btnDel.onclick = function() {
-                showConfirm('Eliminar butaca ' + (el.dataset.fila || '') + (el.dataset.numero || '') + '?', function() {
-                    Api.butaca.eliminar(el.dataset.id).then(function(r) {
+                showConfirm('Eliminar asiento ' + (el.dataset.fila || '') + (el.dataset.numero || '') + '?', function() {
+                    Api.asiento.eliminar(el.dataset.id).then(function(r) {
                         if (r.success) {
                             container.remove();
-                            cargarButacas();
-                        } else showError(r.mensaje || 'Error');
-                    });
+                            cargarAsientos();
+                        } else showError(r.mensaje || 'Error al eliminar asiento');
+                    }).catch(function(e) { showError('Error de conexi\u00F3n'); });
                 });
             };
             btnRow.appendChild(btnDel);
 
             var btnOk = document.createElement('button');
             btnOk.className = 'btn btn-sm btn-success';
-            btnOk.textContent = 'Guardar';
+            btnOk.innerHTML = iconSVG('check');
             btnOk.onclick = function() {
                 var nuevo = sel.value;
                 var params = new URLSearchParams({ action: 'cambiarEstado', id: el.dataset.id, estado: nuevo });
-                fetch(API_URL + '/ButacaController', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
+                fetch(API_URL + '/AsientoController', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
                     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
                     .then(function(r) {
                         if (r.success) {
@@ -135,7 +135,7 @@ let butacasActuales = [];
             btnRow.appendChild(btnOk);
             var btnCancel = document.createElement('button');
             btnCancel.className = 'btn btn-sm btn-secondary';
-            btnCancel.textContent = 'Cancelar';
+            btnCancel.innerHTML = iconSVG('x');
             btnCancel.onclick = function() { container.remove(); };
             btnRow.appendChild(btnCancel);
             container.appendChild(btnRow);
@@ -159,22 +159,27 @@ let butacasActuales = [];
         window.eliminarSalaActual = function() {
             var id = document.getElementById('sala-select').value;
             if (!id) return;
-            showConfirm('\u00BFCONFIRMAR? Se eliminar\u00E1 la sala #' + id + ' y TODAS sus butacas.', function() {
-                Api.sala.eliminar(id).then(function(r) {
-                    if (r.success) {
-                        Api.sala.listar().then(function(salas) {
-                            var sel = document.getElementById('sala-select');
-                            sel.innerHTML = '<option value="">Seleccionar sala</option>' +
-                                salas.map(function(s) { return '<option value="' + s.id_sala + '">' + s.nombre + ' (' + s.tipo + ') - ' + s.capacidad_total + ' asientos</option>'; }).join('');
-                            sel.value = '';
-                            document.getElementById('seat-container').innerHTML = '<div class="text-center text-muted py-5">Selecciona una sala para ver sus butacas</div>';
-                            document.getElementById('btn-editar-sala').style.display = 'none';
-                            document.getElementById('btn-eliminar-sala').style.display = 'none';
-                        });
-                    } else showError(r.mensaje || 'Error');
-                });
+            showConfirm('\u00BFEliminar sala #' + id + ' (y todos sus asientos, horarios y compras relacionadas)?', function() {
+                eliminarSala(id);
             });
         };
+
+        function eliminarSala(id) {
+            Api.sala.eliminar(id).then(function(r) {
+                if (r.success) {
+                    Api.sala.listar().then(function(salas) {
+                        var sel = document.getElementById('sala-select');
+                        sel.innerHTML = '<option value="">Seleccionar sala</option>' +
+                            salas.map(function(s) { return '<option value="' + s.id_sala + '">' + s.nombre + ' (' + s.tipo + ') - ' + s.capacidad_total + ' asientos</option>'; }).join('');
+                        sel.value = '';
+                        document.getElementById('seat-container').innerHTML = '<div class="text-center text-muted py-5">Selecciona una sala para ver sus asientos</div>';
+                        document.getElementById('btn-editar-sala').style.display = 'none';
+                        document.getElementById('btn-eliminar-sala').style.display = 'none';
+                        showSuccess('Sala y asientos eliminados');
+                    });
+                } else showError(r.mensaje || 'Error al eliminar la sala');
+            }).catch(function(e) { showError('Error de conexi\u00F3n: ' + e.message); });
+        }
 
         function mostrarAgregar() {
             if (!document.getElementById('sala-select').value) { showWarning('Selecciona una sala primero'); return; }
@@ -182,7 +187,7 @@ let butacasActuales = [];
             document.getElementById('fila').focus();
         }
 
-        window.guardarButaca = function(e) {
+        window.guardarAsiento = function(e) {
             e.preventDefault();
             const idSala = document.getElementById('sala-select').value;
             if (!idSala) { showWarning('Selecciona una sala'); return; }
@@ -192,12 +197,12 @@ let butacasActuales = [];
                 numero: document.getElementById('numero').value,
                 estado: 'Disponible'
             };
-            Api.butaca.insertar(datos).then(r => {
+                                Api.asiento.insertar(datos).then(r => {
                 if (r.success) {
                     document.getElementById('form-agregar').classList.add('d-none');
                     document.getElementById('fila').value = '';
                     document.getElementById('numero').value = '';
-                    cargarButacas();
+                    cargarAsientos();
                 } else showError(r.mensaje || 'Error');
             }).catch(() => showError('Error de conexi\u00F3n'));
         };
@@ -205,34 +210,34 @@ let butacasActuales = [];
         function generarAutomatico() {
             const idSala = document.getElementById('sala-select').value;
             if (!idSala) { showWarning('Selecciona una sala primero'); return; }
-            showConfirm('\u00BFGenerar butacas (filas A-J, n\u00FAmeros 1-10) para esta sala? Se generar\u00E1n hasta 100.', function() {
-
-            const filas = 'ABCDEFGHIJ'.split('');
-            let pendientes = 0;
-            let errores = 0;
-            filas.forEach(f => {
-                for (let n = 1; n <= 10; n++) {
-                    pendientes++;
-                    const datos = { id_sala: idSala, fila: f, numero: n, estado: 'Disponible' };
-                    Api.butaca.insertar(datos).then(r => {
-                        if (r.success) {
-                            pendientes--;
-                            if (pendientes === 0) cargarButacas();
-                        } else {
-                            errores++;
-                            pendientes--;
-                            if (pendientes === 0) { cargarButacas(); if (errores > 0) showWarning(errores + ' butacas no se pudieron crear'); }
-                        }
-                    }).catch(() => {
-                        errores++;
-                        pendientes--;
-                        if (pendientes === 0) { cargarButacas(); showError('Error de conexi\u00F3n al crear butacas'); }
+            showConfirm('\u00BFGenerar asientos (filas A-J, n\u00FAmeros 1-10) para esta sala? Se generar\u00E1n hasta 100.', function() {
+                fetch(API_URL + '/AsientoController?idSala=' + idSala)
+                    .then(r => r.json())
+                    .then(existentes => {
+                        const set = new Set(existentes.map(b => b.fila + '-' + b.numero));
+                        const filas = 'ABCDEFGHIJ'.split('');
+                        let pendientes = 0;
+                        let errores = 0;
+                        let creadas = 0;
+                        filas.forEach(f => {
+                            for (let n = 1; n <= 10; n++) {
+                                if (set.has(f + '-' + n)) continue;
+                                pendientes++;
+                                const datos = { id_sala: idSala, fila: f, numero: n, estado: 'Disponible' };
+            Api.asiento.insertar(datos).then(r => {
+                                    if (r.success) creadas++;
+                                    else errores++;
+                                    pendientes--;
+                                    if (pendientes === 0) { cargarAsientos(); if (errores > 0) showWarning(creadas + ' creadas, ' + errores + ' errores'); }
+                                }).catch(() => {
+                                    errores++;
+                                    pendientes--;
+                                    if (pendientes === 0) { cargarAsientos(); showError('Error de conexi\u00F3n'); }
+                                });
+                            }
+                        });
+                        if (pendientes === 0 && creadas === 0) { showInfo('Ya existen todos los asientos posibles'); cargarAsientos(); }
+                        document.getElementById('seat-container').innerHTML = '<div class="text-center py-5">Generando asientos...</div>';
                     });
-                }
-            });
-            setTimeout(function() {
-                if (pendientes > 0) { cargarButacas(); showWarning('Se crearon las butacas (con algunos errores de red).'); }
-            }, 15000);
-            document.getElementById('seat-container').innerHTML = '<div class="text-center py-5">Generando butacas...</div>';
             });
         }

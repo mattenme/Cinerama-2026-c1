@@ -7,17 +7,19 @@ public class Funcion {
     private Sala sala;
     private String hora_inicio;
     private String estado;
+    private int activo;
 
     public Funcion() {
     }
 
     public Funcion(int id_funcion, Pelicula pelicula, Sala sala,
-            String hora_inicio, String estado) {
+            String hora_inicio, String estado, int activo) {
         this.id_funcion = id_funcion;
         this.pelicula = pelicula;
         this.sala = sala;
         this.hora_inicio = hora_inicio;
         this.estado = estado;
+        this.activo = activo;
     }
 
     public int getId_funcion() {
@@ -59,4 +61,7 @@ public class Funcion {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    public int getActivo() { return activo; }
+    public void setActivo(int activo) { this.activo = activo; }
 }

@@ -43,12 +43,24 @@
                             <tr><td colspan="8" class="text-center text-muted">Cargando...</td></tr>
                         </tbody>
                     </table>
+                    <nav class="d-flex justify-content-between align-items-center px-3 py-2">
+                        <span class="text-muted small" id="pagination-info"></span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-prev" onclick="paginar(-1)" disabled>&laquo; Anterior</button>
+                            <span class="align-self-center px-2 small" id="pagination-page">1</span>
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-next" onclick="paginar(1)" disabled>Siguiente &raquo;</button>
+                        </div>
+                    </nav>
                 </div>
             </div>
             </main>
         </div>
     </div>
 
+    <div class="modal fade image-lightbox-modal" id="imageLightbox" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body"><img src="" alt="Vista previa"></div></div></div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/admin.js"></script>
