@@ -11,7 +11,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
@@ -140,6 +143,47 @@ public class PeliculaController extends HttpServlet {
         return r.endsWith(File.separator) ? r : r + File.separator;
     }
 
+    private String sourcePath() {
+        // 1. System property (explicit override)
+        String sp = System.getProperty("cinerama.source.webapp");
+        if (sp != null && !sp.isEmpty() && new File(sp).isDirectory()) {
+            sp = sp.replace('/', File.separatorChar).replace('\\', File.separatorChar);
+            if (!sp.endsWith(File.separator)) sp += File.separator;
+            return sp;
+        }
+        // 2. Auto-detect from build/web/../../web/ (NetBeans default structure)
+        try {
+            File candidate = new File(rootPath() + ".." + File.separator + ".." + File.separator + "web");
+            String abs = candidate.getCanonicalPath();
+            if (candidate.isDirectory() && new File(abs + File.separator + "WEB-INF").exists()) {
+                if (!abs.endsWith(File.separator)) abs += File.separator;
+                return abs;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
+    }
+
+    private void copyToSourceDir(String relative) {
+        String sp = sourcePath();
+        if (sp == null) return;
+        try {
+            Path src = new File(rootPath() + relative.replace("/", File.separator)).toPath();
+            Path dest = new File(sp + relative.replace("/", File.separator)).toPath();
+            dest.getParent().toFile().mkdirs();
+            Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            System.err.println("No se pudo copiar a source dir: " + e.getMessage());
+        }
+    }
+
+    private void deleteFromSourceDir(String relative) {
+        String sp = sourcePath();
+        if (sp == null) return;
+        new File(sp + relative.replace("/", File.separator)).delete();
+    }
+
     private String subirImagen(HttpServletRequest req, String ctxPath) throws ServletException, IOException {
         String ct = req.getContentType();
         if (ct == null || !ct.toLowerCase().startsWith("multipart/")) return null;
@@ -168,6 +212,7 @@ public class PeliculaController extends HttpServlet {
             } else {
                 ImageIO.write(original, format, outFile);
             }
+            copyToSourceDir("assets/img/peliculas/" + uniqueName);
         } else {
             return null;
         }
@@ -183,6 +228,7 @@ public class PeliculaController extends HttpServlet {
             else if (relative.startsWith("/")) relative = relative.substring(1);
             String pathFile = rootPath() + relative.replace("/", File.separator);
             new File(pathFile).delete();
+            deleteFromSourceDir(relative.replace("\\", "/"));
         } catch (Exception e) {
         }
     }
